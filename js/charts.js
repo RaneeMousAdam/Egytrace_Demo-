@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    charts.js — Chart.js 4 Wrappers
-   All chart instances tracked so they can be destroyed on re-render.
+   Enterprise light theme — semantic color palette, clean tooltips.
    ═══════════════════════════════════════════════════════════════ */
 
 window._chartInstances = {};
@@ -20,28 +20,36 @@ function flushCharts() {
   window._pendingCharts = [];
 }
 
-/** Common Chart.js defaults */
+/** Common Chart.js defaults — light enterprise theme */
 const CHART_DEFAULTS = {
   font: { family: "'Inter', sans-serif", size: 11 },
-  color: 'rgba(143,163,200,0.9)',
-  borderColor: 'rgba(255,255,255,0.06)',
-  gridColor: 'rgba(255,255,255,0.06)',
+  color: '#94A3B8',
+  borderColor: '#E2E8F0',
+  gridColor: '#E2E8F0',
 };
 
-/** CO2 palette */
+/** CO2 component palette — semantic colors only */
 const CO2_COLORS = {
-  'Process CO2':       '#00d4aa',
-  'Fuel Combustion CO2': '#f59e0b',
-  'Indirect Grid CO2': '#4facfe',
-  'Biogenic CO2 Memo': '#a78bfa',
+  'Process CO2':         '#1677FF',
+  'Fuel Combustion CO2': '#D97706',
+  'Indirect Grid CO2':   '#64748B',
+  'Biogenic CO2 Memo':   '#16A34A',
 };
 
-const FUEL_COLORS = ['#00d4aa','#f59e0b','#4facfe','#a78bfa','#fb923c','#34d399'];
+const FUEL_COLORS = ['#1677FF', '#D97706', '#16A34A', '#64748B', '#DC2626', '#2563EB'];
+
+/** Shared tooltip config */
+const TOOLTIP_CFG = {
+  backgroundColor: '#FFFFFF',
+  borderColor: '#E2E8F0',
+  borderWidth: 1,
+  titleColor: '#172B4D',
+  bodyColor: '#64748B',
+  padding: 12,
+};
 
 /**
  * Donut chart — CO2 component breakdown
- * @param {string} id - canvas element id
- * @param {Array}  breakdown - [{component, tCO2, share}]
  */
 function registerDonutChart(id, breakdown) {
   window._pendingCharts.push(function() {
@@ -49,15 +57,15 @@ function registerDonutChart(id, breakdown) {
     const canvas = document.getElementById(id);
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const labels  = breakdown.map(d => d.component);
-    const data    = breakdown.map(d => d.tCO2);
-    const colors  = labels.map(l => CO2_COLORS[l] || '#60a5fa');
+    const labels = breakdown.map(d => d.component);
+    const data   = breakdown.map(d => d.tCO2);
+    const colors = labels.map(l => CO2_COLORS[l] || '#1677FF');
 
     window._chartInstances[id] = new Chart(ctx, {
       type: 'doughnut',
-      data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: 'rgba(0,0,0,0)', hoverOffset: 8, borderWidth: 2, borderRadius: 4 }] },
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: '#FFFFFF', hoverOffset: 6, borderWidth: 3, borderRadius: 3 }] },
       options: {
-        cutout: '70%',
+        cutout: '72%',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -67,15 +75,10 @@ function registerDonutChart(id, breakdown) {
               label: ctx => {
                 const val = ctx.parsed;
                 const pct = breakdown[ctx.dataIndex] ? (breakdown[ctx.dataIndex].share * 100).toFixed(1) + '%' : '';
-                return `  ${ctx.label}: ${new Intl.NumberFormat('en-US').format(val)} tCO₂ (${pct})`;
+                return `  ${ctx.label}: ${new Intl.NumberFormat('en-US').format(val)} tCO2 (${pct})`;
               }
             },
-            backgroundColor: 'rgba(15,31,61,0.95)',
-            borderColor: 'rgba(0,212,170,0.3)',
-            borderWidth: 1,
-            titleColor: '#eef2ff',
-            bodyColor: '#8fa3c8',
-            padding: 12,
+            ...TOOLTIP_CFG,
           }
         }
       }
@@ -84,11 +87,7 @@ function registerDonutChart(id, breakdown) {
 }
 
 /**
- * Stacked bar chart — e.g. production trend or fuel mix
- * @param {string} id
- * @param {string[]} labels - x-axis labels
- * @param {Array} datasets - [{label, data, color}]
- * @param {string} yUnit
+ * Stacked bar chart
  */
 function registerStackedBarChart(id, labels, datasets, yUnit) {
   window._pendingCharts.push(function() {
@@ -101,7 +100,7 @@ function registerStackedBarChart(id, labels, datasets, yUnit) {
       label: d.label,
       data: d.data,
       backgroundColor: d.color || FUEL_COLORS[i % FUEL_COLORS.length],
-      borderRadius: 4,
+      borderRadius: 3,
       borderSkipped: false,
     }));
 
@@ -117,12 +116,8 @@ function registerStackedBarChart(id, labels, datasets, yUnit) {
                callback: v => new Intl.NumberFormat('en-US',{notation:'compact'}).format(v) + (yUnit?' '+yUnit:'') } }
         },
         plugins: {
-          legend: { labels: { color: CHART_DEFAULTS.color, font: CHART_DEFAULTS.font, boxWidth: 10, boxHeight: 10 } },
-          tooltip: {
-            backgroundColor: 'rgba(15,31,61,0.95)', borderColor: 'rgba(0,212,170,0.25)',
-            borderWidth: 1, titleColor: '#eef2ff', bodyColor: '#8fa3c8', padding: 12,
-            callbacks: { label: ctx => `  ${ctx.dataset.label}: ${new Intl.NumberFormat('en-US').format(ctx.parsed.y)}${yUnit?' '+yUnit:''}` }
-          }
+          legend: { labels: { color: '#64748B', font: CHART_DEFAULTS.font, boxWidth: 10, boxHeight: 10 } },
+          tooltip: { ...TOOLTIP_CFG, callbacks: { label: ctx => `  ${ctx.dataset.label}: ${new Intl.NumberFormat('en-US').format(ctx.parsed.y)}${yUnit?' '+yUnit:''}` } }
         }
       }
     });
@@ -130,11 +125,7 @@ function registerStackedBarChart(id, labels, datasets, yUnit) {
 }
 
 /**
- * Multi-line chart — trend over time
- * @param {string} id
- * @param {string[]} labels
- * @param {Array} datasets - [{label, data, color}]
- * @param {string} yUnit
+ * Multi-line chart
  */
 function registerLineChart(id, labels, datasets, yUnit) {
   window._pendingCharts.push(function() {
@@ -149,12 +140,12 @@ function registerLineChart(id, labels, datasets, yUnit) {
         label: d.label,
         data: d.data,
         borderColor: color,
-        backgroundColor: color.replace(')', ',0.1)').replace('rgb','rgba'),
-        borderWidth: 2.5,
-        pointRadius: 5,
-        pointHoverRadius: 8,
+        backgroundColor: color + '18',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 7,
         pointBackgroundColor: color,
-        tension: 0.35,
+        tension: 0.3,
         fill: datasets.length === 1,
       };
     });
@@ -171,12 +162,8 @@ function registerLineChart(id, labels, datasets, yUnit) {
                callback: v => new Intl.NumberFormat('en-US',{notation:'compact'}).format(v) } }
         },
         plugins: {
-          legend: { labels: { color: CHART_DEFAULTS.color, font: CHART_DEFAULTS.font, boxWidth: 10, boxHeight: 10 } },
-          tooltip: {
-            backgroundColor: 'rgba(15,31,61,0.95)', borderColor: 'rgba(0,212,170,0.25)',
-            borderWidth: 1, titleColor: '#eef2ff', bodyColor: '#8fa3c8', padding: 12,
-            callbacks: { label: ctx => `  ${ctx.dataset.label}: ${new Intl.NumberFormat('en-US').format(ctx.parsed.y)}${yUnit?' '+yUnit:''}` }
-          }
+          legend: { labels: { color: '#64748B', font: CHART_DEFAULTS.font, boxWidth: 10, boxHeight: 10 } },
+          tooltip: { ...TOOLTIP_CFG, callbacks: { label: ctx => `  ${ctx.dataset.label}: ${new Intl.NumberFormat('en-US').format(ctx.parsed.y)}${yUnit?' '+yUnit:''}` } }
         }
       }
     });
@@ -184,7 +171,7 @@ function registerLineChart(id, labels, datasets, yUnit) {
 }
 
 /**
- * Horizontal bar chart — for QA category breakdown
+ * Horizontal bar chart — QA category breakdown
  */
 function registerHBarChart(id, labels, data, colors) {
   window._pendingCharts.push(function() {
@@ -195,10 +182,7 @@ function registerHBarChart(id, labels, data, colors) {
 
     window._chartInstances[id] = new Chart(ctx, {
       type: 'bar',
-      data: {
-        labels,
-        datasets: [{ data, backgroundColor: colors, borderRadius: 4, borderSkipped: false }]
-      },
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 3, borderSkipped: false }] },
       options: {
         indexAxis: 'y',
         responsive: true,
@@ -214,7 +198,7 @@ function registerHBarChart(id, labels, data, colors) {
 }
 
 /**
- * Grouped bar chart — fossil vs biogenic fuel energy
+ * Grouped bar chart
  */
 function registerGroupedBarChart(id, labels, datasets, yUnit) {
   window._pendingCharts.push(function() {
@@ -227,7 +211,7 @@ function registerGroupedBarChart(id, labels, datasets, yUnit) {
       label: d.label,
       data: d.data,
       backgroundColor: d.color || FUEL_COLORS[i],
-      borderRadius: 4,
+      borderRadius: 3,
     }));
 
     window._chartInstances[id] = new Chart(ctx, {
@@ -242,21 +226,20 @@ function registerGroupedBarChart(id, labels, datasets, yUnit) {
                callback: v => new Intl.NumberFormat('en-US',{notation:'compact'}).format(v) + (yUnit?' '+yUnit:'') } }
         },
         plugins: {
-          legend: { labels: { color: CHART_DEFAULTS.color, font: CHART_DEFAULTS.font, boxWidth: 10, boxHeight: 10 } },
-          tooltip: { backgroundColor: 'rgba(15,31,61,0.95)', borderColor: 'rgba(0,212,170,0.25)', borderWidth: 1,
-            titleColor: '#eef2ff', bodyColor: '#8fa3c8', padding: 12 }
+          legend: { labels: { color: '#64748B', font: CHART_DEFAULTS.font, boxWidth: 10, boxHeight: 10 } },
+          tooltip: { ...TOOLTIP_CFG }
         }
       }
     });
   });
 }
 
-window.registerDonutChart   = registerDonutChart;
+window.registerDonutChart      = registerDonutChart;
 window.registerStackedBarChart = registerStackedBarChart;
-window.registerLineChart    = registerLineChart;
-window.registerHBarChart    = registerHBarChart;
+window.registerLineChart       = registerLineChart;
+window.registerHBarChart       = registerHBarChart;
 window.registerGroupedBarChart = registerGroupedBarChart;
-window.flushCharts  = flushCharts;
-window.destroyChart = destroyChart;
-window.CO2_COLORS   = CO2_COLORS;
-window.FUEL_COLORS  = FUEL_COLORS;
+window.flushCharts             = flushCharts;
+window.destroyChart            = destroyChart;
+window.CO2_COLORS              = CO2_COLORS;
+window.FUEL_COLORS             = FUEL_COLORS;
