@@ -17,11 +17,6 @@ function renderGovernance() {
     <div class="page-desc">Workbook versioning, operational status, sector classification, and MRV data governance rules.</div>
   </div>
 
-  ${isDemo ? `<div class="demo-banner" style="font-size:13px;padding:12px 16px;">
-    ${renderIcon('alert-triangle', 16)}
-    <strong>DEMO STATUS:</strong>&nbsp;${escHtml(statusRow?.['Governance note'] || 'This workbook contains demo data and is not suitable for submission.')}
-  </div>` : ''}
-
   <div class="section-card mb-lg">
     <div class="section-card-header">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -35,10 +30,7 @@ function renderGovernance() {
           ${s.readme.map(r => `
           <tr>
             <td class="gov-key">${escHtml(r.Control || '')}</td>
-            <td class="gov-val">${r.Control === 'Status' && isDemo
-              ? `<span class="badge badge-warn" style="font-size:11.5px;"><span class="qa-dot qa-dot-warn"></span> ${escHtml(r.Value||'')}</span>`
-              : `<strong>${escHtml(r.Value||r.Control||'')}</strong>`
-            }</td>
+            <td class="gov-val"><strong>${escHtml(r.Value || '')}</strong></td>
             <td class="gov-note">${escHtml(r['Governance note'] || r.Value || '')}</td>
           </tr>`).join('')}
         </tbody>

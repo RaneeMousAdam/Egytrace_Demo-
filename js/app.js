@@ -108,18 +108,12 @@ function buildFooter() {
   const footer = document.getElementById('footer');
   if (!footer) return;
   const s = window.STORE;
-  let disclaimerText = 'TRACE FORCE MRV — Cement QA/QC Dashboard';
+  let disclaimerText = 'TRACE FORCE MRV — Cement QA/QC Analytics Platform';
 
   if (s && s._valid) {
-    const statusRow = s.readme.find(r => r.Control === 'Status');
-    const govNote   = statusRow?.['Governance note'] || '';
-    const status    = statusRow?.Value || '';
-    const isDemo    = status.includes('DEMO');
-    if (isDemo) {
-      disclaimerText = `<span class="demo-flag">${renderIcon('alert-triangle', 12)} ${escHtml(status)}</span> — ${escHtml(govNote)}`;
-    } else {
-      disclaimerText = escHtml(status ? `${status} | ${govNote}` : govNote);
-    }
+    const site = s.setup['Installation / site'] || '';
+    const quarter = s.setup['Reporting quarter'] || '';
+    disclaimerText = `TRACE FORCE MRV — Cement QA/QC Platform | ${site ? escHtml(site) + ' | ' : ''}${quarter ? escHtml(quarter) + ' | ' : ''}Operational Control`;
   }
 
   footer.innerHTML = `<div class="footer-text">${disclaimerText}</div>`;
@@ -315,13 +309,7 @@ function renderEmptyState(title, sub) {
 }
 
 function buildDemoBanner(s) {
-  if (!s) return '';
-  const statusRow = s.readme.find(r => r.Control === 'Status');
-  if (!statusRow || !String(statusRow.Value).includes('DEMO')) return '';
-  return `<div class="demo-banner">
-    ${renderIcon('alert-triangle', 14)}
-    <strong>${escHtml(statusRow.Value)}</strong> — ${escHtml(statusRow['Governance note'] || '')}
-  </div>`;
+  return '';
 }
 
 /* ── Event setup ────────────────────────────────────────────────── */

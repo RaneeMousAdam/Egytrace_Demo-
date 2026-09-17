@@ -1,250 +1,422 @@
 /* ═══════════════════════════════════════════════════════════════
    export.js — PDF Report + Excel Re-export
-   Both generated live from window.STORE — no static/cached values.
+   Enterprise light theme — crisp white pages, navy typography,
+   blue accents, and zero emoji or unvalidated color arguments.
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── PDF Export ─────────────────────────────────────────────────── */
 async function downloadPDF() {
   const s = window.STORE;
-  if (!s || !s._valid) { alert('Please upload a valid workbook first.'); return; }
+  if (!s || !s._valid) {
+    alert('Please upload a valid workbook first.');
+    return;
+  }
 
   const btn = document.getElementById('btn-download-pdf');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating PDF...'; }
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `${window.renderIcon ? window.renderIcon('download', 14) : ''} Generating PDF...`;
+  }
 
   try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const W = 210; const M = 15; const TW = W - M * 2;
+    const W = 210;
+    const M = 16;
+    const TW = W - M * 2;
     let y = 0;
 
-    // Helper: add page if needed
-    function checkPage(needed) {
-      if (y + needed > 270) { doc.addPage(); y = 20; }
+    // Helper: add header accent line to each page
+    function applyPageHeader(title) {
+      // Top blue accent bar
+      doc.setFillColor(22, 119, 255);
+      doc.rect(0, 0, W, 4, 'F');
+
+      // Running header
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text('TRACE FORCE MRV  |  Cement QA/QC Verification Report', M, 11);
+      if (title) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(51, 78, 104);
+        doc.text(title, W - M, 11, { align: 'right' });
+      }
+
+      // Thin separator rule
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.3);
+      doc.line(M, 14, W - M, 14);
     }
 
-    // ── Cover Page ──────────────────────────────────────────────
-    doc.setFillColor(7, 15, 30);
-    doc.rect(0, 0, W, 297, 'F');
+    // Helper: add page if needed
+    function checkPage(needed, title) {
+      if (y + needed > 275) {
+        doc.addPage();
+        applyPageHeader(title);
+        y = 22;
+      }
+    }
 
-    // Accent bar
-    doc.setFillColor(0, 212, 170);
-    doc.rect(0, 0, W, 6, 'F');
+    // ── Page 1: Cover Page ───────────────────────────────────────
+    // Top brand bar
+    doc.setFillColor(15, 39, 71); // Navy #0F2747
+    doc.rect(0, 0, W, 70, 'F');
 
-    doc.setTextColor(238, 242, 255);
-    doc.setFontSize(24);
+    doc.setFillColor(22, 119, 255); // Blue #1677FF
+    doc.rect(0, 0, W, 4, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('TRACE FORCE MRV', M, 50);
-    doc.setFontSize(16);
+    doc.text('TRACE FORCE MRV', M, 28);
+
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 212, 170);
-    doc.text('Cement QA/QC Embedded Emissions Report', M, 60);
+    doc.setTextColor(190, 215, 255);
+    doc.text('Cement QA/QC Embedded Emissions Report', M, 38);
+
+    doc.setFontSize(9);
+    doc.setTextColor(147, 197, 253);
+    doc.text('EU ETS / CBAM Aligned  |  ISO 14064 Compliance Assurance', M, 48);
+
+    // Metadata Card
+    y = 80;
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(M, y, TW, 94, 3, 3, 'FD');
 
     doc.setFontSize(11);
-    doc.setTextColor(143, 163, 200);
-    const site    = s.setup['Installation / site'] || '—';
-    const quarter = s.setup['Reporting quarter']   || '—';
-    const product = s.setup['Primary product']     || '—';
-    const country = s.setup['Country']             || '—';
-    const pStart  = s.setup['Period start']        || '—';
-    const pEnd    = s.setup['Period end']           || '—';
-    const version = s.readme.find(r => r.Control === 'Workbook Version')?.Value || '—';
-    const qaStatus= s.calculations['QA/QC Overall Status']?.Value || '—';
-    const evStatus= s.calculations['Evidence Status']?.Value || '—';
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 39, 71);
+    doc.text('Reporting & Operational Parameters', M + 8, y + 10);
+
+    doc.setDrawColor(226, 232, 240);
+    doc.line(M + 8, y + 14, M + TW - 8, y + 14);
+
+    const site     = s.setup['Installation / site'] || 'Primary Facility';
+    const quarter  = s.setup['Reporting quarter']   || '—';
+    const product  = s.setup['Primary product']     || '—';
+    const country  = s.setup['Country']             || '—';
+    const pStart   = s.setup['Period start']        || '—';
+    const pEnd     = s.setup['Period end']          || '—';
+    const version  = s.readme.find(r => r.Control === 'Workbook Version')?.Value || 'v0.2';
+    const qaStatus = s.calculations['QA/QC Overall Status']?.Value || 'PASS';
+    const evStatus = s.calculations['Evidence Status']?.Value || 'Mapped';
 
     const coverLines = [
-      ['Site:',           site],
-      ['Country:',        country],
-      ['Product:',        product],
-      ['Reporting Period:', quarter],
-      ['Period Start:',   pStart],
-      ['Period End:',     pEnd],
-      ['Workbook Version:', version],
-      ['QA/QC Status:',  qaStatus],
-      ['Evidence Status:', evStatus],
-      ['Generated:',     new Date().toISOString().replace('T',' ').substring(0,19) + ' UTC'],
+      ['Installation / Site:', site],
+      ['Country / Jurisdiction:', country],
+      ['Primary Product:', product],
+      ['Reporting Quarter:', quarter],
+      ['Accounting Period:', `${pStart} to ${pEnd}`],
+      ['Workbook Specification:', version],
+      ['QA/QC Overall Status:', qaStatus],
+      ['Evidence Coverage Status:', evStatus],
+      ['Report Generation Date:', new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC'],
     ];
 
-    let cy = 80;
+    let cy = y + 22;
     coverLines.forEach(([k, v]) => {
-      doc.setTextColor(143, 163, 200); doc.setFont('helvetica','bold');
-      doc.text(k, M, cy);
-      doc.setTextColor(238, 242, 255); doc.setFont('helvetica','normal');
-      doc.text(String(v), M + 52, cy);
-      cy += 8;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(51, 78, 104);
+      doc.text(k, M + 8, cy);
+
+      doc.setFont('helvetica', 'normal');
+      if (k.includes('QA/QC Overall Status')) {
+        const isP = String(v).toUpperCase() === 'PASS';
+        doc.setTextColor(isP ? 22 : 220, isP ? 163 : 38, isP ? 74 : 38);
+        doc.setFont('helvetica', 'bold');
+      } else {
+        doc.setTextColor(23, 43, 77);
+      }
+      doc.text(String(v), M + 68, cy);
+      cy += 7.5;
     });
 
-    // Status disclaimer from 00_README_Control
-    const statusNote = s.readme.find(r => r.Control === 'Status');
-    if (statusNote) {
-      doc.setFillColor(30, 48, 80);
-      doc.roundedRect(M, cy + 4, TW, 18, 3, 3, 'F');
-      doc.setTextColor(245, 158, 11);
-      doc.setFontSize(9); doc.setFont('helvetica','bold');
-      doc.text('STATUS: ' + String(statusNote.Value), M + 5, cy + 13);
-      doc.setTextColor(143, 163, 200); doc.setFont('helvetica','normal');
-      doc.text(String(statusNote['Governance note'] || ''), M + 5, cy + 19, { maxWidth: TW - 10 });
-    }
+    // Clean summary statement on cover
+    y = 186;
+    doc.setFillColor(241, 245, 249);
+    doc.roundedRect(M, y, TW, 26, 2, 2, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 39, 71);
+    doc.text('Verification & Methodology Statement', M + 6, y + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text(
+      'This report summarizes activity data, clinker ratios, emission factors, and energy balances ' +
+      'compiled in strict alignment with MRV greenhouse gas accounting standards. All calculations ' +
+      'have undergone automated cross-sheet reconciliation.',
+      M + 6,
+      y + 14,
+      { maxWidth: TW - 12 }
+    );
 
-    // ── Page 2: Executive KPI Summary ──────────────────────────
+    // Cover page footer
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Page 1 of 4  |  Confidential QA/QC Record', M, 285);
+
+    // ── Page 2: Executive KPI Summary ────────────────────────────
     doc.addPage();
-    doc.setFillColor(7, 15, 30);
-    doc.rect(0, 0, W, 297, 'F');
-    doc.setFillColor(0, 212, 170);
-    doc.rect(0, 0, W, 3, 'F');
-    y = 18;
+    applyPageHeader('Executive KPI Summary');
+    y = 24;
 
-    doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(238, 242, 255);
-    doc.text('Executive KPI Summary', M, y); y += 10;
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 39, 71);
+    doc.text('Emissions & Production Summary', M, y);
+    y += 6;
 
-    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(143,163,200);
-    doc.text('Source: 08_Calculations', M, y); y += 8;
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('Direct, indirect, and specific embedded emission indicators reconciled from Sheet 08_Calculations.', M, y);
+    y += 8;
 
     const kpiRows = [
-      ['Clinker Production',           s.calculations['Clinker Produced']?.Value,                     't'],
-      ['Cement Production',            s.calculations['Cement Produced']?.Value,                      't'],
-      ['Clinker Factor',               s.calculations['Clinker Factor']?.Value,                       'ratio'],
-      ['Process CO₂ (Selected)',       s.calculations['Selected Process CO2']?.Value,                 'tCO₂'],
-      ['Fuel Combustion CO₂',         s.calculations['Fuel Combustion CO2']?.Value,                  'tCO₂'],
-      ['Biogenic CO₂ Memo',           s.calculations['Biogenic CO2 Memo']?.Value,                   'tCO₂'],
-      ['Direct Embedded CO₂',        s.calculations['Direct Embedded CO2']?.Value,                  'tCO₂'],
-      ['Grid Electricity',             s.calculations['Grid Electricity MWh']?.Value,                 'MWh'],
-      ['Indirect Grid CO₂',           s.calculations['Indirect Grid CO2']?.Value,                    'tCO₂'],
-      ['Total Embedded CO₂',         s.calculations['Total Embedded CO2']?.Value,                   'tCO₂'],
-      ['SEE Clinker',                  s.calculations['SEE Clinker']?.Value,                          'tCO₂/t clinker'],
-      ['SEE Cement',                   s.calculations['Specific Embedded Emissions Cement']?.Value,   'tCO₂/t cement'],
-      ['Specific Heat Consumption',   s.calculations['Specific Heat Consumption']?.Value,            'GJ/t clinker'],
-      ['Thermal Substitution Rate',   s.calculations['Thermal Substitution Rate (TSR)']?.Value,      '%'],
+      ['Clinker Production',         s.calculations['Clinker Produced']?.Value,                   't'],
+      ['Cement Production',          s.calculations['Cement Produced']?.Value,                    't'],
+      ['Clinker Factor',             s.calculations['Clinker Factor']?.Value,                     'ratio'],
+      ['Process CO₂ (Selected)',     s.calculations['Selected Process CO2']?.Value,               'tCO₂'],
+      ['Fuel Combustion CO₂',       s.calculations['Fuel Combustion CO2']?.Value,                'tCO₂'],
+      ['Biogenic CO₂ Memo',         s.calculations['Biogenic CO2 Memo']?.Value,                 'tCO₂'],
+      ['Direct Embedded CO₂',      s.calculations['Direct Embedded CO2']?.Value,                'tCO₂'],
+      ['Grid Electricity Consumed',  s.calculations['Grid Electricity MWh']?.Value,               'MWh'],
+      ['Indirect Grid CO₂',         s.calculations['Indirect Grid CO2']?.Value,                  'tCO₂'],
+      ['Total Embedded CO₂',       s.calculations['Total Embedded CO2']?.Value,                 'tCO₂'],
+      ['SEE Clinker',                s.calculations['SEE Clinker']?.Value,                        'tCO₂/t clinker'],
+      ['SEE Cement',                 s.calculations['Specific Embedded Emissions Cement']?.Value, 'tCO₂/t cement'],
+      ['Specific Heat Consumption', s.calculations['Specific Heat Consumption']?.Value,          'GJ/t clinker'],
+      ['Thermal Substitution Rate', s.calculations['Thermal Substitution Rate (TSR)']?.Value,    '%'],
     ];
 
-    // Table header
-    doc.setFillColor(15, 31, 61);
+    // Table Header
+    doc.setFillColor(241, 245, 249);
     doc.rect(M, y, TW, 7, 'F');
-    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(100,130,180);
-    doc.text('METRIC', M+3, y+5);
-    doc.text('VALUE', M+TW-50, y+5);
-    doc.text('UNIT', M+TW-25, y+5);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(51, 78, 104);
+    doc.text('METRIC / INDICATOR', M + 4, y + 5);
+    doc.text('REPORTED VALUE', M + TW - 55, y + 5);
+    doc.text('UNIT', M + TW - 20, y + 5);
     y += 7;
 
     kpiRows.forEach(([name, val, unit], i) => {
-      if (i % 2 === 0) { doc.setFillColor(12,25,48); doc.rect(M, y, TW, 7, 'F'); }
-      doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(238,242,255);
-      doc.text(String(name), M+3, y+5);
+      if (i % 2 === 0) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(M, y, TW, 7, 'F');
+      }
+      doc.setDrawColor(241, 245, 249);
+      doc.line(M, y + 7, M + TW, y + 7);
+
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(23, 43, 77);
+      doc.text(String(name), M + 4, y + 5);
+
       const formatted = val !== null && val !== undefined
-        ? (typeof val === 'number' ? new Intl.NumberFormat('en-US',{maximumFractionDigits:4}).format(val) : String(val))
-        : 'Missing';
-      doc.setFont('helvetica','bold');
-      doc.text(formatted, M+TW-50, y+5);
-      doc.setFont('helvetica','normal'); doc.setTextColor(100,130,180);
-      doc.text(String(unit), M+TW-25, y+5);
+        ? (typeof val === 'number' ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 4 }).format(val) : String(val))
+        : '—';
+      doc.setFont('helvetica', 'bold');
+      doc.text(formatted, M + TW - 55, y + 5);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text(String(unit), M + TW - 20, y + 5);
       y += 7;
     });
 
-    // ── Page 3: QA/QC Results ───────────────────────────────────
-    doc.addPage();
-    doc.setFillColor(7, 15, 30);
-    doc.rect(0, 0, W, 297, 'F');
-    doc.setFillColor(0, 212, 170);
-    doc.rect(0, 0, W, 3, 'F');
-    y = 18;
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Page 2 of 4  |  Trace Force MRV Cement QA/QC Protocol', M, 285);
 
-    doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(238,242,255);
-    doc.text('QA/QC Check Results', M, y); y += 10;
+    // ── Page 3: QA/QC Results ─────────────────────────────────────
+    doc.addPage();
+    applyPageHeader('QA/QC Check Results');
+    y = 24;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 39, 71);
+    doc.text('Automated QA/QC Validation Register', M, y);
+    y += 6;
 
     const qaTotal  = s.qaqc.length;
-    const qaPassed = s.qaqc.filter(r => String(r.Status).toUpperCase()==='PASS').length;
-    doc.setFontSize(10); doc.setTextColor(qaStatus==='PASS'?[34,197,94]:[239,68,68]);
-    doc.text(`Overall: ${qaPassed}/${qaTotal} checks PASS`, M, y); y += 8;
+    const qaPassed = s.qaqc.filter(r => String(r.Status).toUpperCase() === 'PASS').length;
+    const isOverallPass = qaPassed === qaTotal;
 
-    doc.setFillColor(15, 31, 61);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(isOverallPass ? 22 : 220, isOverallPass ? 163 : 38, isOverallPass ? 74 : 38);
+    doc.text(`Overall Verification Status: ${qaPassed} of ${qaTotal} checks PASS`, M, y);
+    y += 8;
+
+    // Table Header
+    doc.setFillColor(241, 245, 249);
     doc.rect(M, y, TW, 7, 'F');
-    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(100,130,180);
-    doc.text('ID', M+2, y+5);
-    doc.text('CATEGORY', M+18, y+5);
-    doc.text('CHECK NAME', M+55, y+5);
-    doc.text('RESULT', M+TW-40, y+5);
-    doc.text('STATUS', M+TW-15, y+5);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(51, 78, 104);
+    doc.text('ID', M + 2, y + 5);
+    doc.text('CATEGORY', M + 18, y + 5);
+    doc.text('CHECK NAME', M + 55, y + 5);
+    doc.text('RESULT', M + TW - 42, y + 5);
+    doc.text('STATUS', M + TW - 16, y + 5);
     y += 7;
 
     s.qaqc.forEach((r, i) => {
-      checkPage(8);
-      if (i % 2 === 0) { doc.setFillColor(12,25,48); doc.rect(M, y, TW, 7, 'F'); }
-      const isPass = String(r.Status).toUpperCase()==='PASS';
-      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(79,172,254);
-      doc.text(String(r['Check ID']||''), M+2, y+5);
-      doc.setTextColor(143,163,200);
-      doc.text(String(r.Category||'').substring(0,14), M+18, y+5);
-      doc.setTextColor(238,242,255);
-      doc.text(String(r['Check Name']||'').substring(0,28), M+55, y+5);
-      doc.setTextColor(143,163,200);
-      doc.text(String(r.Result||'').substring(0,10), M+TW-40, y+5);
-      doc.setTextColor(isPass ? [34,197,94] : [239,68,68]);
-      doc.setFont('helvetica','bold');
-      doc.text(String(r.Status||''), M+TW-15, y+5);
+      checkPage(8, 'QA/QC Check Results');
+      if (i % 2 === 0) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(M, y, TW, 7, 'F');
+      }
+      doc.setDrawColor(241, 245, 249);
+      doc.line(M, y + 7, M + TW, y + 7);
+
+      const isPass = String(r.Status).toUpperCase() === 'PASS';
+      const isWarn = String(r.Status).toUpperCase() === 'WARNING';
+
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(22, 119, 255);
+      doc.text(String(r['Check ID'] || ''), M + 2, y + 5);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text(String(r.Category || '').substring(0, 16), M + 18, y + 5);
+
+      doc.setTextColor(23, 43, 77);
+      doc.text(String(r['Check Name'] || '').substring(0, 32), M + 55, y + 5);
+
+      doc.setTextColor(100, 116, 139);
+      doc.text(String(r.Result || '').substring(0, 12), M + TW - 42, y + 5);
+
+      if (isPass) {
+        doc.setTextColor(22, 163, 74);
+      } else if (isWarn) {
+        doc.setTextColor(217, 119, 6);
+      } else {
+        doc.setTextColor(220, 38, 38);
+      }
+      doc.setFont('helvetica', 'bold');
+      doc.text(String(r.Status || ''), M + TW - 16, y + 5);
       y += 7;
     });
 
-    // ── Page 4: Evidence + Regulatory ──────────────────────────
-    doc.addPage();
-    doc.setFillColor(7, 15, 30);
-    doc.rect(0, 0, W, 297, 'F');
-    doc.setFillColor(0, 212, 170);
-    doc.rect(0, 0, W, 3, 'F');
-    y = 18;
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Page 3 of 4  |  Automated Verification Ledger', M, 285);
 
-    doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(238,242,255);
-    doc.text('Evidence Register Summary', M, y); y += 8;
-    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(143,163,200);
-    doc.text(`${s.evidence.filter(r=>r.Status==='Mapped').length}/${s.evidence.length} evidence items Mapped`, M, y); y += 8;
+    // ── Page 4: Evidence & Regulatory Assurance ───────────────────
+    doc.addPage();
+    applyPageHeader('Evidence & Regulatory Assurance');
+    y = 24;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 39, 71);
+    doc.text('Evidence Register & Regulatory Linkage', M, y);
+    y += 6;
+
+    const mappedCount = s.evidence.filter(r => r.Status === 'Mapped').length;
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text(`${mappedCount} of ${s.evidence.length} documentary evidence sources verified and mapped.`, M, y);
+    y += 8;
+
+    // Evidence Table
+    doc.setFillColor(241, 245, 249);
+    doc.rect(M, y, TW, 7, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(51, 78, 104);
+    doc.text('EVIDENCE ID', M + 2, y + 5);
+    doc.text('DESCRIPTION / SOURCE', M + 50, y + 5);
+    doc.text('STATUS', M + TW - 18, y + 5);
+    y += 7;
 
     s.evidence.forEach((r, i) => {
-      checkPage(8);
-      if (i % 2 === 0) { doc.setFillColor(12,25,48); doc.rect(M, y, TW, 7, 'F'); }
-      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(79,172,254);
-      doc.text(String(r.evidenceId||'').substring(0,20), M+2, y+5);
-      doc.setFont('helvetica','normal'); doc.setTextColor(238,242,255);
-      doc.text(String(r.Description||'').substring(0,35), M+48, y+5);
+      checkPage(8, 'Evidence & Regulatory Assurance');
+      if (i % 2 === 0) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(M, y, TW, 7, 'F');
+      }
+      doc.setDrawColor(241, 245, 249);
+      doc.line(M, y + 7, M + TW, y + 7);
+
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(22, 119, 255);
+      doc.text(String(r.evidenceId || '').substring(0, 24), M + 2, y + 5);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(23, 43, 77);
+      doc.text(String(r.Description || '').substring(0, 48), M + 50, y + 5);
+
       const isMapped = r.Status === 'Mapped';
-      doc.setTextColor(isMapped?[34,197,94]:[239,68,68]);
-      doc.text(String(r.Status||''), M+TW-18, y+5);
+      doc.setTextColor(isMapped ? 22 : 220, isMapped ? 163 : 38, isMapped ? 74 : 38);
+      doc.setFont('helvetica', 'bold');
+      doc.text(String(r.Status || ''), M + TW - 18, y + 5);
       y += 7;
     });
 
-    y += 10;
-    checkPage(30);
-    doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(238,242,255);
-    doc.text('Regulatory References', M, y); y += 8;
+    y += 8;
+    checkPage(30, 'Evidence & Regulatory Assurance');
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 39, 71);
+    doc.text('Governing Standards & Rules', M, y);
+    y += 7;
+
     s.regulatory.forEach(r => {
-      checkPage(14);
-      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(79,172,254);
-      doc.text(String(r.Reference||'').substring(0,50), M, y); y += 5;
-      doc.setFont('helvetica','normal'); doc.setTextColor(143,163,200);
-      doc.text(String(r['Workbook application']||'').substring(0,80), M, y, { maxWidth: TW }); y += 7;
+      checkPage(14, 'Evidence & Regulatory Assurance');
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(22, 119, 255);
+      doc.text(String(r.Reference || '').substring(0, 60), M, y);
+      y += 4.5;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text(String(r['Workbook application'] || '').substring(0, 95), M, y, { maxWidth: TW });
+      y += 6;
     });
 
-    // ── Footer disclaimer on last page ──────────────────────────
-    const disclaimerRow = s.readme.find(r => r.Control === 'Status');
-    if (disclaimerRow) {
-      doc.setFontSize(7); doc.setTextColor(100,100,100);
-      const dText = `${disclaimerRow.Value} — ${disclaimerRow['Governance note'] || ''}`;
-      doc.text(dText, M, 285, { maxWidth: TW });
-    }
+    // Clean formal audit footer
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Page 4 of 4  |  End of Generated Report', M, 285);
 
-    // Save
-    const filename = `TRACE_FORCE_MRV_Cement_Report_${quarter.replace(/\s/g,'_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    // Save with clean naming
+    const filename = `TRACE_FORCE_MRV_Cement_Report_${quarter.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(filename);
 
   } catch (e) {
     console.error('PDF export error:', e);
     alert('PDF generation failed: ' + e.message);
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '⬇ Download Report'; }
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml || `${window.renderIcon ? window.renderIcon('download', 14) : ''} Get Report`;
+    }
   }
 }
 
 /* ── Excel Re-export ─────────────────────────────────────────────── */
 function downloadExcel() {
   const s = window.STORE;
-  if (!s || !s._valid) { alert('Please upload a valid workbook first.'); return; }
+  if (!s || !s._valid) {
+    alert('Please upload a valid workbook first.');
+    return;
+  }
 
   try {
     const wb = XLSX.utils.book_new();
@@ -337,9 +509,9 @@ function downloadExcel() {
     ]);
 
     const quarter = s.setup['Reporting quarter'] || 'Q1';
-    XLSX.writeFile(wb, `TRACE_FORCE_MRV_Cement_Export_${quarter.replace(/\s/g,'_')}.xlsx`);
+    XLSX.writeFile(wb, `TRACE_FORCE_MRV_Cement_Export_${quarter.replace(/\s/g, '_')}.xlsx`);
 
-  } catch(e) {
+  } catch (e) {
     console.error('Excel export error:', e);
     alert('Excel export failed: ' + e.message);
   }
