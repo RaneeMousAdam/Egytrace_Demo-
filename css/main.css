@@ -401,18 +401,47 @@ ul { list-style: none; }
 }
 .upload-card {
   background: var(--bg-panel);
-  border: 2px dashed var(--border-accent);
+  border: 1.5px solid var(--border-accent);
   border-radius: var(--r-xl);
-  padding: var(--sp-2xl);
+  padding: 48px var(--sp-2xl);
   text-align: center;
-  max-width: 500px; width: 90%;
-  animation: float 3s ease-in-out infinite;
-  box-shadow: var(--shadow-lg);
+  max-width: 520px; width: 92%;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,212,170,0.08);
+  animation: uc-in 0.4s ease;
 }
-.upload-card .uc-icon { font-size: 56px; margin-bottom: var(--sp-md); }
-.upload-card h2 { font-size: 22px; font-weight: 800; margin-bottom: var(--sp-sm); }
-.upload-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: var(--sp-xl); line-height: 1.6; }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes uc-in { from { opacity:0; transform: translateY(12px) scale(0.98); } to { opacity:1; transform: none; } }
+.uc-logo-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 72px; height: 72px;
+  background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(79,172,254,0.12));
+  border: 1px solid var(--border-accent);
+  border-radius: var(--r-lg);
+  margin: 0 auto var(--sp-lg);
+  color: var(--accent);
+}
+.upload-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.3px; }
+.upload-card p  { font-size: 13.5px; color: var(--text-secondary); margin-bottom: var(--sp-xl); line-height: 1.65; max-width: 400px; margin-left: auto; margin-right: auto; }
+
+/* Upload step indicators */
+.uc-steps {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: var(--sp-lg);
+}
+.uc-step {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-secondary);
+}
+.uc-step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  border: 1px solid var(--border-accent);
+  font-size: 10px; font-weight: 700;
+  color: var(--accent);
+}
+.uc-step-arrow { color: var(--text-muted); }
+
 
 /* ── Demo Warning Banner ───────────────────────────────────────── */
 .demo-banner {

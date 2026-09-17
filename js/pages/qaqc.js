@@ -43,8 +43,9 @@ function renderQaqc() {
         <span class="chip chip-controlled">${total} checks</span>
       </div>
     </div>
-    <div class="page-desc">Automated validation matrix evaluating mass balances, stoichiometric bounds, and data completeness across ${Object.keys(cats).length} categories.</div>
+    <div class="page-desc">Automated checks that catch issues before they reach regulators — covering mass balances, physical limits, and completeness across ${Object.keys(cats).length} check categories.</div>
   </div>
+
 
   ${buildDemoBanner(s)}
 

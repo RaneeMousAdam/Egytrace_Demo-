@@ -91,14 +91,14 @@ function buildTopbar() {
     <div class="topbar-actions">
       ${qaStatus ? `<span class="badge ${qaColor}" style="font-size:11.5px;cursor:pointer;" data-explain="kpi-qaqc-status"><span class="qa-dot ${qaDotClass}"></span> QA/QC ${escHtml(qaStatus)}</span>` : ''}
       <label class="btn btn-secondary btn-sm" for="file-input" style="cursor:pointer;" data-explain="btn-upload">
-        ${renderIcon('upload', 14)} Upload Workbook
+        ${renderIcon('upload', 14)} Load Workbook
       </label>
       <input type="file" id="file-input" accept=".xlsx,.xlsm" style="display:none;" onchange="handleFileInput(event)">
       <button class="btn btn-primary btn-sm" id="btn-download-pdf" onclick="downloadPDF()" data-explain="btn-download-pdf">
-        ${renderIcon('download', 14)} Download Report
+        ${renderIcon('download', 14)} Get Report
       </button>
       <button class="btn btn-secondary btn-sm" onclick="downloadExcel()" data-explain="btn-export-excel">
-        ${renderIcon('file-spreadsheet', 14)} Export Excel
+        ${renderIcon('file-spreadsheet', 14)} Export Data
       </button>
     </div>`;
 }
@@ -136,18 +136,27 @@ function showUploadPrompt() {
   prompt.style.display = 'flex';
   prompt.innerHTML = `
     <div class="upload-card">
-      <div class="uc-icon" style="color:var(--accent);display:flex;justify-content:center;margin-bottom:16px;">
-        ${renderIcon('upload', 40)}
+      <div class="uc-logo-mark">
+        ${renderIcon('bar-chart-2', 32)}
       </div>
-      <h2>TRACE FORCE MRV</h2>
-      <p>Upload your <strong>TRACE_FORCE_MRV_Cement_QAQC_V28</strong> workbook to begin.<br>
-      All 14 sheets will be parsed and validated automatically.</p>
-      <label class="btn btn-primary" for="file-input-modal" style="cursor:pointer;" data-explain="btn-upload">
-        ${renderIcon('upload', 16)} Select Workbook (.xlsx)
+      <h2>Welcome to TRACE FORCE MRV</h2>
+      <p>Drop your cement plant workbook here and we'll take care of the rest — parsing all 14 sheets, running QA/QC checks, and building your compliance dashboard automatically.</p>
+      <label class="btn btn-primary" for="file-input-modal" style="cursor:pointer;font-size:13px;padding:10px 22px;" data-explain="btn-upload">
+        ${renderIcon('upload', 16)} Choose your workbook (.xlsx)
       </label>
       <input type="file" id="file-input-modal" accept=".xlsx,.xlsm" style="display:none;" onchange="handleFileInput(event)">
-      <div style="margin-top:16px;font-size:11px;color:var(--text-muted);">
-        Supported: TRACE_FORCE_MRV_Cement_QAQC_V28_Collection_Workbook
+      <div style="margin-top:12px;font-size:11.5px;color:var(--text-muted);">
+        or drag &amp; drop anywhere on this page
+      </div>
+      <div class="uc-steps">
+        <div class="uc-step"><span class="uc-step-num">1</span><span>Upload workbook</span></div>
+        <div class="uc-step-arrow">${renderIcon('chevron-right', 13)}</div>
+        <div class="uc-step"><span class="uc-step-num">2</span><span>Auto-parse &amp; validate</span></div>
+        <div class="uc-step-arrow">${renderIcon('chevron-right', 13)}</div>
+        <div class="uc-step"><span class="uc-step-num">3</span><span>Explore dashboard</span></div>
+      </div>
+      <div style="margin-top:20px;font-size:11px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:14px;">
+        Supports: <strong style="color:var(--text-secondary)">TRACE_FORCE_MRV_Cement_QAQC_V28_Collection_Workbook</strong>
       </div>
     </div>`;
 }
@@ -184,7 +193,7 @@ function navigate(pageKey) {
       <div class="error-banner">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
           ${renderIcon('alert-triangle', 16)}
-          <h3 style="margin:0;">Schema Validation Warnings — some fields may not render</h3>
+          <h3 style="margin:0;">A few fields need attention &mdash; data may be incomplete</h3>
         </div>
         <ul>${window.STORE._errors.map(e => `<li>${escHtml(e)}</li>`).join('')}</ul>
       </div>
@@ -214,7 +223,7 @@ function handleFileInput(event) {
   // Show loading
   const content = document.getElementById('content');
   if (content) {
-    content.innerHTML = `<div class="state-box"><div class="spinner"></div><div class="state-title">Parsing workbook...</div><div class="state-sub">${escHtml(file.name)}</div></div>`;
+    content.innerHTML = `<div class="state-box"><div class="spinner"></div><div class="state-title">Reading your workbook&hellip;</div><div class="state-sub" style="color:var(--text-muted);font-size:12px;">${escHtml(file.name)}</div><div class="state-sub" style="font-size:11.5px;margin-top:4px;">Parsing all 14 sheets and running QA/QC checks</div></div>`;
   }
 
   const reader = new FileReader();
@@ -230,13 +239,18 @@ function handleFileInput(event) {
             <div class="error-banner">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                 ${renderIcon('alert-triangle', 16)}
-                <h3 style="margin:0;">Workbook Validation Failed</h3>
+                <h3 style="margin:0;">We couldn't read this workbook</h3>
               </div>
               <ul>${store._errors.map(err => `<li>${escHtml(err)}</li>`).join('')}</ul>
+              <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">Make sure you're uploading a <strong style="color:var(--text-secondary);">TRACE_FORCE_MRV_Cement_QAQC_V28</strong> workbook with all 14 sheets intact.</div>
             </div>
             <div class="state-box">
-              <div class="state-icon" style="color:var(--accent);">${renderIcon('file-text', 40)}</div>
-              <div class="state-title">Please upload a valid V28 workbook</div>
+              <div class="state-icon" style="color:var(--accent);">${renderIcon('upload', 40)}</div>
+              <div class="state-title">Try a different file</div>
+              <div class="state-sub">Upload a valid V28 workbook to get started</div>
+              <label class="btn btn-primary" for="file-input" style="cursor:pointer;margin-top:8px;">
+                ${renderIcon('upload', 14)} Choose Workbook
+              </label>
             </div>`;
         }
         buildTopbar(); buildFooter();
@@ -291,11 +305,11 @@ function setupDragDrop() {
 /* ── Shared helpers used by multiple page renderers ────────────── */
 function renderEmptyState(title, sub) {
   return `<div class="state-box">
-    <div class="state-icon" style="color:var(--accent);">${renderIcon('file-text', 40)}</div>
-    <div class="state-title">${escHtml(title)}</div>
-    <div class="state-sub">${escHtml(sub)}</div>
+    <div class="state-icon" style="color:var(--accent);">${renderIcon('upload', 40)}</div>
+    <div class="state-title">No data loaded yet</div>
+    <div class="state-sub">Upload your TRACE FORCE MRV workbook to view ${escHtml(title.toLowerCase())}.</div>
     <label class="btn btn-primary" for="file-input" style="cursor:pointer;margin-top:8px;" data-explain="btn-upload">
-      ${renderIcon('upload', 14)} Upload Workbook
+      ${renderIcon('upload', 14)} Choose Workbook
     </label>
   </div>`;
 }

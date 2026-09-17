@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="TRACE FORCE MRV — Cement QA/QC Dashboard: ingests, validates and visualises your V28 cement MRV workbook for CBAM/EU ETS embedded emissions reporting.">
-  <title>TRACE FORCE MRV — Cement QA/QC Dashboard</title>
+  <meta name="description" content="TRACE FORCE MRV — Upload your cement plant workbook and instantly get verified emissions calculations, QA/QC checks, and compliance reports. No server needed.">
+  <title>TRACE FORCE MRV — Cement QA/QC Analytics</title>
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/main.css">
@@ -12,38 +12,39 @@
   <link rel="stylesheet" href="css/print.css">
 
   <!-- CDN Libraries -->
-  <!-- SheetJS (xlsx) -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <!-- Chart.js 4 -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    /* Inline critical-path: loading screen before fonts load */
+    /* Inline critical-path: loading screen */
     #initial-loading {
       position: fixed; inset: 0;
       background: #070f1e;
       display: flex; align-items: center; justify-content: center;
       z-index: 9999;
-      transition: opacity 0.4s ease;
+      transition: opacity 0.5s ease;
     }
     #initial-loading.hidden { opacity: 0; pointer-events: none; }
-    .il-logo {
-      display: flex; flex-direction: column; align-items: center; gap: 16px;
-    }
+    .il-logo { display: flex; flex-direction: column; align-items: center; gap: 20px; }
     .il-icon {
-      width: 56px; height: 56px;
-      background: linear-gradient(135deg, #00d4aa, #4facfe);
-      border-radius: 14px;
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #00d4aa 0%, #4facfe 100%);
+      border-radius: 18px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 28px;
-      box-shadow: 0 4px 24px rgba(0,212,170,0.4);
-      animation: pulse 2s ease-in-out infinite;
+      animation: breathe 2.4s ease-in-out infinite;
     }
-    @keyframes pulse { 0%,100% { box-shadow: 0 4px 24px rgba(0,212,170,0.4); } 50% { box-shadow: 0 4px 40px rgba(0,212,170,0.7); } }
-    .il-title { font-family: system-ui,sans-serif; font-size: 18px; font-weight: 700; color: #eef2ff; }
-    .il-sub   { font-family: system-ui,sans-serif; font-size: 12px; color: #4a5d80; }
+    @keyframes breathe {
+      0%,100% { box-shadow: 0 0 0 0 rgba(0,212,170,0.5); transform: scale(1); }
+      50%      { box-shadow: 0 0 0 14px rgba(0,212,170,0); transform: scale(1.04); }
+    }
+    .il-title { font-family: system-ui,sans-serif; font-size: 20px; font-weight: 700; color: #eef2ff; letter-spacing: -0.3px; }
+    .il-sub   { font-family: system-ui,sans-serif; font-size: 13px; color: #4a5d80; }
+    .il-dots  { display: flex; gap: 6px; }
+    .il-dot   { width: 6px; height: 6px; border-radius: 50%; background: #00d4aa; opacity: 0.3; animation: dotpulse 1.2s ease-in-out infinite; }
+    .il-dot:nth-child(2) { animation-delay: 0.2s; }
+    .il-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotpulse { 0%,80%,100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1.2); } }
   </style>
 </head>
 <body>
@@ -52,10 +53,15 @@
   <div id="initial-loading">
     <div class="il-logo">
       <div class="il-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20V8l5 4V8l5 4V4l5 4v12"/></svg>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20V8l5 4V8l5 4V4l5 4v12"/></svg>
       </div>
       <div class="il-title">TRACE FORCE MRV</div>
-      <div class="il-sub">Cement QA/QC Dashboard — Loading…</div>
+      <div class="il-sub">Getting your analytics platform ready&hellip;</div>
+      <div class="il-dots">
+        <div class="il-dot"></div>
+        <div class="il-dot"></div>
+        <div class="il-dot"></div>
+      </div>
     </div>
   </div>
 
@@ -71,7 +77,7 @@
           </div>
           <div class="logo-text">
             <div class="brand">TRACE FORCE</div>
-            <div class="sub">MRV · Cement QA/QC</div>
+            <div class="sub">MRV &middot; Cement QA/QC</div>
           </div>
         </div>
         <button class="sidebar-toggle" onclick="toggleSidebar()" title="Collapse sidebar" aria-label="Toggle sidebar">
@@ -85,32 +91,20 @@
     <header id="topbar" role="banner"></header>
 
     <!-- Main Content -->
-    <main id="content" role="main" aria-live="polite">
-      <!-- Rendered by router -->
-    </main>
+    <main id="content" role="main" aria-live="polite"></main>
 
     <!-- Footer -->
     <footer id="footer" role="contentinfo"></footer>
 
   </div><!-- /#app-shell -->
 
-  <!-- Upload Prompt (shown when no workbook is loaded) -->
-  <!-- Dynamically injected by app.js -->
-
   <!-- ── JavaScript — load in dependency order ─────────────────── -->
-  <!-- 0. Core UI Foundations (Icons & Explanations) -->
   <script src="js/icons.js"></script>
   <script src="js/explain.js"></script>
-  <!-- 1. Data model -->
   <script src="js/store.js"></script>
-  <!-- 2. Formatting utilities -->
   <script src="js/formatter.js"></script>
-  <!-- 3. Workbook parser -->
   <script src="js/parser.js"></script>
-  <!-- 4. Chart wrappers -->
   <script src="js/charts.js"></script>
-
-  <!-- 5. Page renderers (all expose window.render* functions) -->
   <script src="js/pages/overview.js"></script>
   <script src="js/pages/governance.js"></script>
   <script src="js/pages/setup.js"></script>
@@ -126,21 +120,18 @@
   <script src="js/pages/evidence.js"></script>
   <script src="js/pages/regulatory.js"></script>
   <script src="js/pages/analytics_dashboard.js"></script>
-
-  <!-- 6. Export (PDF + Excel) -->
   <script src="js/export.js"></script>
-
-  <!-- 7. App bootstrap (router, events) — must be last -->
   <script src="js/app.js"></script>
 
   <script>
-    // Hide initial loading screen after fonts/libs load
     window.addEventListener('load', () => {
       setTimeout(() => {
         const il = document.getElementById('initial-loading');
-        if (il) il.classList.add('hidden');
-        setTimeout(() => { if (il) il.remove(); }, 500);
-      }, 400);
+        if (il) {
+          il.classList.add('hidden');
+          setTimeout(() => { if (il) il.remove(); }, 600);
+        }
+      }, 600);
     });
   </script>
 </body>

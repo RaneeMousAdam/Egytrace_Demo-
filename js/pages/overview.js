@@ -86,7 +86,7 @@ function renderOverview() {
         <span class="badge badge-accent">v${escHtml(version)}</span>
       </div>
     </div>
-    <div class="page-desc">Executive summary for ${escHtml(site)} (${escHtml(country)}) · ${escHtml(quarter)} · Product: ${escHtml(product)}</div>
+    <div class="page-desc">Here's your plant at a glance &mdash; ${escHtml(site)}, ${escHtml(country)} &middot; ${escHtml(quarter)} &middot; ${escHtml(product)}</div>
   </div>
 
   ${buildDemoBanner(s)}
@@ -245,9 +245,11 @@ function renderOverview() {
     <div class="section-card-header">
       <div style="display:flex;align-items:center;gap:8px;">
         ${renderIcon('calculator', 15, 'text-muted')}
-        <h3 style="margin:0;">Key Emission Metrics (from 08_Calculations)</h3>
+        <h3 style="margin:0;">All Calculated Metrics</h3>
       </div>
+      <span style="font-size:11.5px;color:var(--text-muted);">Sourced from 08_Calculations sheet</span>
     </div>
+
     <div class="section-card-body no-pad">
       <div class="table-wrapper" style="border:none;">
         <table class="data-table">
