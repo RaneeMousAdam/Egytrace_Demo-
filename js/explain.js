@@ -212,11 +212,6 @@ const EXPLANATIONS = {
  * @param {Event} [event] - Optional click event to anchor or prevent bubbling
  */
 function showExplanation(keyOrData, event) {
-  if (event) {
-    if (typeof event.stopPropagation === 'function') event.stopPropagation();
-    if (typeof event.preventDefault === 'function') event.preventDefault();
-  }
-
   let info = null;
   if (typeof keyOrData === 'string') {
     info = EXPLANATIONS[keyOrData] || {
@@ -303,17 +298,24 @@ function closeExplanation() {
   }
 }
 
-// Global click delegator for elements with data-explain
+// Global click delegator for non-interactive elements with data-explain
+// NOTE: Nav items use direct showExplanation() calls (not this delegator).
+// Only passive display elements (badges, KPI cards, spans) should have data-explain.
 document.addEventListener('click', (e) => {
+  // Skip all interactive / actionable elements — they handle themselves
+  const blocked = e.target.closest(
+    'input, select, textarea, a, button, label, .nav-item, .nav-info-btn'
+  );
+  if (blocked) return;
+
   const target = e.target.closest('[data-explain]');
   if (target) {
     const key = target.getAttribute('data-explain');
-    if (key) {
-      showExplanation(key, e);
-    }
+    if (key) showExplanation(key, e);
   }
 });
 
 window.EXPLANATIONS = EXPLANATIONS;
 window.showExplanation = showExplanation;
 window.closeExplanation = closeExplanation;
+

@@ -59,9 +59,10 @@ function buildSidebar() {
     ${sec.keys.map(key => {
       const r = ROUTES[key];
       if (!r) return '';
-      return `<div class="nav-item" id="nav-${key}" onclick="navigate('${key}')" data-explain="nav-${key}" title="Click to view ${escHtml(r.label)}">
+      return `<div class="nav-item" id="nav-${key}" onclick="navigate('${key}')" title="${escHtml(r.label)}">
         <span class="nav-icon">${renderIcon(r.icon, 16)}</span>
         <span class="nav-label">${escHtml(r.label)}</span>
+        <button class="nav-info-btn" onclick="event.stopPropagation();showExplanation('nav-${key}')" aria-label="What is ${escHtml(r.label)}?" title="About this section">${renderIcon('info', 11)}</button>
       </div>`;
     }).join('')}
   `).join('');
