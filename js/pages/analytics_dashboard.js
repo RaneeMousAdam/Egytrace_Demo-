@@ -12,7 +12,6 @@ function renderAnalyticsDashboard() {
   if (!s) return renderEmptyState('Analytics Dashboard', 'Upload a workbook to view analytics.');
 
   const c = s.calculations;
-  const q = s.qaqc;
 
   // Values from calculations
   const clinkerFactor = parseFloat(c['Clinker Factor']?.Value) || 0;
@@ -56,17 +55,23 @@ function renderAnalyticsDashboard() {
   registerStackedBarChart('adash-fuel-energy', fuelTypes,
     [{ label: 'Energy (GJ)', data: energyArr, color: '#00d4aa' }], 'GJ');
 
-  function rangeBarHtml(id, value, min, max, qaMin, qaMax, unit, label) {
+  function rangeBarHtml(id, value, min, max, qaMin, qaMax, unit, label, explainKey) {
     const range  = max - min;
     const valPct = range > 0 ? Math.max(0, Math.min(100, ((value - min) / range) * 100)) : 50;
     const qaPct1 = range > 0 ? ((qaMin - min) / range) * 100 : 0;
     const qaPct2 = range > 0 ? ((qaMax - min) / range) * 100 : 100;
     const inRange = value >= qaMin && value <= qaMax;
     return `
-    <div class="chart-card">
+    <div class="chart-card" ${explainKey ? `data-explain="${explainKey}" style="cursor:pointer;"` : ''}>
       <div class="chart-card-header">
-        <h3>${escHtml(label)}</h3>
-        <span class="badge ${inRange?'badge-pass':'badge-fail'}">${inRange?'✓ In Range':'✗ Out of Range'}</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <h3 style="margin:0;">${escHtml(label)}</h3>
+          ${explainKey ? `<span style="color:var(--text-muted);display:flex;">${renderIcon('info', 13)}</span>` : ''}
+        </div>
+        <span class="badge ${inRange?'badge-pass':'badge-fail'}">
+          <span class="qa-dot ${inRange?'qa-dot-pass':'qa-dot-fail'}"></span>
+          ${inRange?'In Range':'Out of Range'}
+        </span>
       </div>
       <div style="padding:12px 0;">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;color:var(--text-muted);">
@@ -90,8 +95,13 @@ function renderAnalyticsDashboard() {
 
   return `
   <div class="page-header">
-    <h2>📈 Analytics Dashboard</h2>
-    <div class="subtitle">Source: 13_Dashboard + 08_Calculations + 07_Constants — deeper visual analytics with QA threshold bands</div>
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('bar-chart-2', 20, 'page-title-icon')}
+        <h2>Analytics Dashboard</h2>
+      </div>
+    </div>
+    <div class="page-desc">Advanced performance indicators, fuel mix substitutions, emission intensity gauges, and QA threshold bounds.</div>
   </div>
 
   ${buildDemoBanner(s)}
@@ -100,7 +110,10 @@ function renderAnalyticsDashboard() {
   <div class="grid-2 mb-lg">
     <div class="chart-card">
       <div class="chart-card-header">
-        <h3>CO₂ Component Breakdown</h3>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('bar-chart-2', 15, 'text-muted')}
+          <h3 style="margin:0;">CO₂ Component Breakdown</h3>
+        </div>
         <span class="badge badge-accent">${fmtInt(breakdown.reduce((a,d)=>a+d.tCO2,0))} tCO₂ total</span>
       </div>
       <div style="display:flex;gap:20px;align-items:center;">
@@ -123,7 +136,12 @@ function renderAnalyticsDashboard() {
     </div>
 
     <div class="chart-card">
-      <div class="chart-card-header"><h3>Fuel Mix — Fossil vs Biogenic CO₂</h3></div>
+      <div class="chart-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('flame', 15, 'text-muted')}
+          <h3 style="margin:0;">Fuel Mix — Fossil vs Biogenic CO₂</h3>
+        </div>
+      </div>
       <div class="chart-container" style="height:220px;"><canvas id="adash-fuel-mix"></canvas></div>
     </div>
   </div>
@@ -132,7 +150,10 @@ function renderAnalyticsDashboard() {
   <div class="grid-2 mb-lg">
     <div class="chart-card">
       <div class="chart-card-header">
-        <h3>Fuel Energy by Type</h3>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('zap', 15, 'text-muted')}
+          <h3 style="margin:0;">Fuel Energy by Type</h3>
+        </div>
         <span class="badge badge-info">TSR: ${fmtDec(tsr,2)}%</span>
       </div>
       <div class="chart-container" style="height:200px;"><canvas id="adash-fuel-energy"></canvas></div>
@@ -143,41 +164,44 @@ function renderAnalyticsDashboard() {
       </div>
     </div>
 
-    ${rangeBarHtml('cf-gauge', clinkerFactor, 0, 1.2, cfMin, cfMax, '', 'Clinker Factor vs QA Band')}
+    ${rangeBarHtml('cf-gauge', clinkerFactor, 0, 1.2, cfMin, cfMax, '', 'Clinker Factor vs QA Band', 'kpi-clinker-factor')}
   </div>
 
   <!-- SEE + SHC + TSR gauges -->
   <div class="grid-2 mb-lg">
-    ${rangeBarHtml('see-clinker-gauge', seeClinker, 0, 1.5, seeMin, seeMax, ' tCO₂/t', 'SEE Clinker vs QA Range')}
-    ${rangeBarHtml('see-cement-gauge', seeCement, 0, 1.5, 0.20, 1.20, ' tCO₂/t', 'SEE Cement vs QA Range')}
+    ${rangeBarHtml('see-clinker-gauge', seeClinker, 0, 1.5, seeMin, seeMax, ' tCO₂/t', 'SEE Clinker vs QA Range', 'kpi-see-clinker')}
+    ${rangeBarHtml('see-cement-gauge', seeCement, 0, 1.5, 0.20, 1.20, ' tCO₂/t', 'SEE Cement vs QA Range', 'kpi-see-cement')}
   </div>
 
   <div class="grid-2 mb-lg">
-    ${rangeBarHtml('shc-gauge', shc, 0, 6, shcMin, shcMax, ' GJ/t', 'Specific Heat Consumption vs QA Range')}
-    ${rangeBarHtml('tsr-gauge', tsr, 0, 100, tsrMin, tsrMax, '%', 'Thermal Substitution Rate vs QA Range')}
+    ${rangeBarHtml('shc-gauge', shc, 0, 6, shcMin, shcMax, ' GJ/t', 'Specific Heat Consumption vs QA Range', 'kpi-specific-heat')}
+    ${rangeBarHtml('tsr-gauge', tsr, 0, 100, tsrMin, tsrMax, '%', 'Thermal Substitution Rate vs QA Range', 'kpi-tsr')}
   </div>
 
   <!-- QA/QC Summary mini-table -->
   <div class="section-card">
     <div class="section-card-header">
-      <h3>📊 Key Metrics Summary Table (from 08_Calculations + 13_Dashboard)</h3>
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('calculator', 15, 'text-muted')}
+        <h3 style="margin:0;">Key Metrics Summary Table (from 08_Calculations + 13_Dashboard)</h3>
+      </div>
     </div>
     <div class="section-card-body no-pad">
       <table class="data-table">
         <thead><tr><th>Metric</th><th class="num">Value</th><th>Unit</th><th>QA Result</th><th>Source</th></tr></thead>
         <tbody>
           ${[
-            {metric:'Clinker Factor',      val:clinkerFactor, unit:'ratio',           qaIn: clinkerFactor>=cfMin&&clinkerFactor<=cfMax, src:'08_Calculations'},
-            {metric:'SEE Clinker',         val:seeClinker,    unit:'tCO₂/t clinker',  qaIn: seeClinker>=seeMin&&seeClinker<=seeMax,     src:'08_Calculations'},
-            {metric:'SEE Cement',          val:seeCement,     unit:'tCO₂/t cement',   qaIn: seeCement>=0.20&&seeCement<=1.20,           src:'08_Calculations'},
-            {metric:'Specific Heat Consumption', val:shc, unit:'GJ/t clinker',        qaIn: shc>=shcMin&&shc<=shcMax,                  src:'08_Calculations'},
-            {metric:'TSR',                 val:tsr,           unit:'%',               qaIn: tsr>=tsrMin&&tsr<=tsrMax,                  src:'08_Calculations'},
+            {metric:'Clinker Factor',      val:clinkerFactor, unit:'ratio',           qaIn: clinkerFactor>=cfMin&&clinkerFactor<=cfMax, src:'08_Calculations', key:'kpi-clinker-factor'},
+            {metric:'SEE Clinker',         val:seeClinker,    unit:'tCO₂/t clinker',  qaIn: seeClinker>=seeMin&&seeClinker<=seeMax,     src:'08_Calculations', key:'kpi-see-clinker'},
+            {metric:'SEE Cement',          val:seeCement,     unit:'tCO₂/t cement',   qaIn: seeCement>=0.20&&seeCement<=1.20,           src:'08_Calculations', key:'kpi-see-cement'},
+            {metric:'Specific Heat Consumption', val:shc, unit:'GJ/t clinker',        qaIn: shc>=shcMin&&shc<=shcMax,                  src:'08_Calculations', key:'kpi-specific-heat'},
+            {metric:'TSR',                 val:tsr,           unit:'%',               qaIn: tsr>=tsrMin&&tsr<=tsrMax,                  src:'08_Calculations', key:'kpi-tsr'},
           ].map(row => `
-          <tr>
+          <tr ${row.key ? `data-explain="${row.key}" style="cursor:pointer;" title="Click for definition"` : ''}>
             <td><strong>${escHtml(row.metric)}</strong></td>
             <td class="num mono" style="color:var(--accent);">${fmtDec(row.val, 4)}</td>
             <td class="unit-col">${escHtml(row.unit)}</td>
-            <td>${row.qaIn ? '<span class="badge badge-pass">✓ In Range</span>' : '<span class="badge badge-fail">✗ Out of Range</span>'}</td>
+            <td>${row.qaIn ? '<span class="badge badge-pass"><span class="qa-dot qa-dot-pass"></span> In Range</span>' : '<span class="badge badge-fail"><span class="qa-dot qa-dot-fail"></span> Out of Range</span>'}</td>
             <td style="font-size:11px;color:var(--text-muted);">${escHtml(row.src)}</td>
           </tr>`).join('')}
         </tbody>

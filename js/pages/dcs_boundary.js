@@ -11,18 +11,23 @@ function renderDcsBoundary() {
 
   return `
   <div class="page-header">
-    <h2>🗺️ DCS / ERP / Lab Boundary Map</h2>
-    <div class="subtitle">Source: 02_DCS_Boundary_Map — ${rows.length} fields mapped from plant systems to MRV inputs</div>
-    <div class="badge-row">
-      <span class="badge badge-pass">${mapped} Mapped</span>
-      ${pending > 0 ? `<span class="badge badge-warn">${pending} Pending</span>` : ''}
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('network', 20, 'page-title-icon')}
+        <h2>DCS / ERP / Lab Boundary Map</h2>
+      </div>
+      <div class="page-header-actions">
+        <span class="badge badge-pass"><span class="qa-dot qa-dot-pass"></span> ${mapped} Mapped</span>
+        ${pending > 0 ? `<span class="badge badge-warn"><span class="qa-dot qa-dot-warn"></span> ${pending} Pending</span>` : ''}
+      </div>
     </div>
+    <div class="page-desc">Data acquisition mapping connecting plant instrumentation, DCS tags, lab analyzers, and MRV inputs.</div>
   </div>
 
   ${buildDemoBanner(s)}
 
   <div class="filter-row mb-md">
-    <input class="filter-input" id="dcs-search" placeholder="🔍 Search boundary, tag, field..." oninput="filterDcsTable()">
+    <input class="filter-input" id="dcs-search" placeholder="Search boundary, tag, or field..." oninput="filterDcsTable()">
     <select class="filter-select" id="dcs-area" onchange="filterDcsTable()">
       <option value="">All Areas</option>
       ${areas.map(a => `<option value="${escHtml(a)}">${escHtml(a)}</option>`).join('')}
@@ -56,7 +61,7 @@ function renderDcsBoundary() {
             <th>QA/QC Rule</th>
           </tr></thead>
           <tbody>
-            ${rows.map((r, i) => {
+            ${rows.map(r => {
               const isMapped = r['Mapped Status'] === 'Mapped';
               return `<tr data-area="${escHtml(r['Boundary Area']||'')}" data-owner="${escHtml(r['Owner']||'')}" data-status="${escHtml(r['Mapped Status']||'')}">
                 <td><strong>${escHtml(r['Boundary Area']||'—')}</strong></td>
@@ -65,9 +70,9 @@ function renderDcsBoundary() {
                 <td><strong>${escHtml(r['MRV Field']||'—')}</strong></td>
                 <td class="unit-col">${escHtml(r['Unit']||'')}</td>
                 <td style="font-size:12px;">${escHtml(r['Frequency']||'—')}</td>
-                <td style="font-size:11px;color:var(--text-secondary);max-width:160px;">${escHtml(r['Evidence Required']||'—')}</td>
+                <td style="font-size:11.5px;color:var(--text-secondary);max-width:160px;">${escHtml(r['Evidence Required']||'—')}</td>
                 <td style="font-size:12px;color:var(--accent-2);">${escHtml(r['Calculation Use']||'—')}</td>
-                <td>${isMapped ? '<span class="chip chip-mapped">✓ Mapped</span>' : '<span class="chip chip-pending">Pending</span>'}</td>
+                <td>${isMapped ? '<span class="badge badge-pass"><span class="qa-dot qa-dot-pass"></span> Mapped</span>' : '<span class="badge badge-warn"><span class="qa-dot qa-dot-warn"></span> Pending</span>'}</td>
                 <td style="font-size:12px;">${escHtml(r['Owner']||'—')}</td>
                 <td style="font-size:11px;color:var(--text-muted);max-width:160px;">${escHtml(r['QA/QC Rule']||'—')}</td>
               </tr>`;

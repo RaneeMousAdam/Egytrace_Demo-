@@ -9,7 +9,6 @@ function renderReportOutputs() {
   const groups = {};
   rows.forEach(r => {
     const ui = r['Mapped to Cement UI'] || 'Other';
-    // Split multi-value (e.g. "Overview / Report Cover")
     const keys = ui.split('/').map(k => k.trim());
     const key = keys[0] || 'Other';
     if (!groups[key]) groups[key] = [];
@@ -18,12 +17,16 @@ function renderReportOutputs() {
 
   return `
   <div class="page-header">
-    <h2>📄 Report Outputs</h2>
-    <div class="subtitle">Source: 10_Report_Outputs — system-facing final report fields, pre-template for PDF export</div>
-    <div class="badge-row">
-      <span class="badge badge-info">${rows.length} output fields</span>
-      <span class="badge badge-accent">Maps 1:1 with Download Report</span>
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('file-text', 20, 'page-title-icon')}
+        <h2>Report Outputs</h2>
+      </div>
+      <div class="page-header-actions">
+        <span class="chip chip-controlled">${rows.length} verified fields</span>
+      </div>
     </div>
+    <div class="page-desc">Aggregated regulatory reporting schedule aligned with CBAM, EU ETS, and third-party verification templates.</div>
   </div>
 
   ${buildDemoBanner(s)}
@@ -38,7 +41,10 @@ function renderReportOutputs() {
   ${Object.entries(groups).map(([group, groupRows]) => `
   <div class="section-card mb-lg" id="group-${escHtml(group.replace(/\s/g,''))}">
     <div class="section-card-header">
-      <h3>${escHtml(group)}</h3>
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('file-text', 15, 'text-muted')}
+        <h3 style="margin:0;">${escHtml(group)}</h3>
+      </div>
       <span class="chip chip-controlled">${groupRows.length} fields</span>
     </div>
     <div class="section-card-body no-pad">
@@ -68,7 +74,7 @@ function renderReportOutputs() {
             <td class="unit-col">${escHtml(r.Unit||'')}</td>
             <td style="font-size:12px;color:var(--accent-2);">${escHtml(r.Source||'—')}</td>
             <td style="font-size:12px;">${escHtml(r['Report Label']||'—')}</td>
-            <td style="font-size:11px;color:var(--text-secondary);max-width:200px;">${escHtml(r['Governance Position']||'—')}</td>
+            <td style="font-size:11.5px;color:var(--text-secondary);max-width:200px;">${escHtml(r['Governance Position']||'—')}</td>
             <td style="font-size:11px;color:var(--text-muted);">${escHtml(r.Notes||'—')}</td>
           </tr>`;}).join('')}
         </tbody>

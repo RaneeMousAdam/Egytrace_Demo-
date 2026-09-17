@@ -16,29 +16,49 @@ function renderElectricity() {
 
   return `
   <div class="page-header">
-    <h2>⚡ Electricity Input</h2>
-    <div class="subtitle">Source: 06_Electricity_Input — purchased grid electricity, grid EF and indirect CO₂</div>
-    <div class="badge-row">
-      <span class="badge badge-info">${fmtInt(totalMWh)} MWh total</span>
-      <span class="badge badge-accent">${fmtDec(totalCO2,2)} tCO₂ indirect</span>
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('zap', 20, 'page-title-icon')}
+        <h2>Electricity Input</h2>
+      </div>
+      <div class="page-header-actions">
+        <span class="badge badge-info">${fmtInt(totalMWh)} MWh imported</span>
+        <span class="badge badge-accent">${fmtDec(totalCO2,2)} tCO₂ indirect</span>
+      </div>
     </div>
+    <div class="page-desc">Purchased grid electricity, on-site generation, grid emission factors, and Scope 2 indirect carbon accounting.</div>
   </div>
 
   ${buildDemoBanner(s)}
 
   <div class="grid-2 mb-lg">
     <div class="chart-card">
-      <div class="chart-card-header"><h3>Grid Electricity Consumption Trend</h3></div>
+      <div class="chart-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('trending-up', 15, 'text-muted')}
+          <h3 style="margin:0;">Grid Electricity Consumption Trend</h3>
+        </div>
+      </div>
       <div class="chart-container" style="height:200px;"><canvas id="chart-elec-mwh"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-card-header"><h3>Indirect Grid CO₂ Trend</h3></div>
+      <div class="chart-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('bar-chart-2', 15, 'text-muted')}
+          <h3 style="margin:0;">Indirect Grid CO₂ Trend</h3>
+        </div>
+      </div>
       <div class="chart-container" style="height:200px;"><canvas id="chart-elec-co2"></canvas></div>
     </div>
   </div>
 
   <div class="section-card">
-    <div class="section-card-header"><h3>📋 Monthly Electricity Data</h3></div>
+    <div class="section-card-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('file-text', 15, 'text-muted')}
+        <h3 style="margin:0;">Monthly Electricity Data</h3>
+      </div>
+    </div>
     <div class="section-card-body no-pad">
       <div class="table-wrapper" style="border:none;">
         <table class="data-table">
@@ -56,7 +76,7 @@ function renderElectricity() {
               <td style="font-size:12px;">${escHtml(r['Meter / Source']||'—')}</td>
               <td class="num">${fmt(r['Grid MWh'],'MWh')}</td>
               <td class="num">${fmt(r['Grid EF tCO2/MWh'],'tCO2/MWh')}</td>
-              <td class="num" style="color:var(--accent);">${fmt(r['Grid CO2 t'],'tCO2')}</td>
+              <td class="num mono" style="color:var(--accent);">${fmt(r['Grid CO2 t'],'tCO2')}</td>
               <td class="num">${fmt(r['Self-generation MWh'],'MWh')}</td>
               <td class="num">${fmt(r['Self-generation EF'],'tCO2/MWh')}</td>
               <td class="num">${fmt(r['Self-generation CO2 t'],'tCO2')}</td>

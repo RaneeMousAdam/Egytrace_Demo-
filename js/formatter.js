@@ -115,12 +115,12 @@ function fmtQaBadge(status, severity) {
   if (!status) return '<span class="badge badge-missing">—</span>';
   const s = String(status).toUpperCase();
   if (s === 'PASS') {
-    return '<span class="badge badge-pass">✓ PASS</span>';
+    return '<span class="badge badge-pass"><span class="qa-dot qa-dot-pass"></span> Pass</span>';
   }
   if (s === 'FAIL') {
-    return '<span class="badge badge-fail">✗ FAIL</span>';
+    return '<span class="badge badge-fail"><span class="qa-dot qa-dot-fail"></span> Fail</span>';
   }
-  return `<span class="badge badge-warn">⚠ ${escHtml(status)}</span>`;
+  return `<span class="badge badge-warn"><span class="qa-dot qa-dot-warn"></span> ${escHtml(status)}</span>`;
 }
 
 /** Severity badge (Warning / Fail) */

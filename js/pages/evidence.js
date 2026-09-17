@@ -15,18 +15,23 @@ function renderEvidence() {
 
   return `
   <div class="page-header">
-    <h2>📁 Evidence Register</h2>
-    <div class="subtitle">Source: 11_Evidence_Register — ${rows.length} evidence items mapped to source systems and MRV sheets</div>
-    <div class="badge-row">
-      <span class="badge badge-pass">${mapped} Mapped</span>
-      ${pending > 0 ? `<span class="badge badge-warn">${pending} Pending</span>` : ''}
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('folder', 20, 'page-title-icon')}
+        <h2>Evidence Register</h2>
+      </div>
+      <div class="page-header-actions">
+        <span class="badge badge-pass"><span class="qa-dot qa-dot-pass"></span> ${mapped} Mapped</span>
+        ${pending > 0 ? `<span class="badge badge-warn"><span class="qa-dot qa-dot-warn"></span> ${pending} Pending</span>` : ''}
+      </div>
     </div>
+    <div class="page-desc">Comprehensive audit-trail registry linking activity data, lab certificates, invoices, and weighbridge records.</div>
   </div>
 
   ${buildDemoBanner(s)}
 
   <div class="filter-row mb-md">
-    <input class="filter-input" id="ev-search" placeholder="🔍 Search by evidence ID, description..." value="${escHtml(preFilter)}" oninput="filterEvidenceTable()">
+    <input class="filter-input" id="ev-search" placeholder="Search by evidence ID, description..." value="${escHtml(preFilter)}" oninput="filterEvidenceTable()">
     <select class="filter-select" id="ev-status" onchange="filterEvidenceTable()">
       <option value="">All Statuses</option>
       <option value="Mapped">Mapped</option>
@@ -63,12 +68,12 @@ function renderEvidence() {
               <td style="font-size:12px;color:var(--text-secondary);">${escHtml(r['Source System']||'—')}</td>
               <td style="font-size:12px;color:var(--accent-2);">${escHtml(r['Mapped Sheet']||'—')}</td>
               <td>${isMapped
-                ? '<span class="chip chip-mapped">✓ Mapped</span>'
-                : '<span class="chip chip-pending">⚠ Pending</span>'}</td>
+                ? '<span class="badge badge-pass"><span class="qa-dot qa-dot-pass"></span> Mapped</span>'
+                : '<span class="badge badge-warn"><span class="qa-dot qa-dot-warn"></span> Pending</span>'}</td>
               <td style="font-size:12px;">${escHtml(r['Owner']||'—')}</td>
               <td style="font-size:12px;">${escHtml(r['Reviewer']||'—')}</td>
               <td style="font-size:11px;color:var(--text-muted);">${escHtml(r['Frequency']||'—')}</td>
-              <td style="font-size:11px;color:var(--text-muted);max-width:180px;">${escHtml(r['Notes']||'—')}</td>
+              <td style="font-size:11.5px;color:var(--text-muted);max-width:180px;">${escHtml(r['Notes']||'—')}</td>
             </tr>`;}).join('')}
           </tbody>
         </table>

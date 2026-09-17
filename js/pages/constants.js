@@ -5,8 +5,17 @@ function renderConstants() {
 
   return `
   <div class="page-header">
-    <h2>🔬 Constants, EF &amp; NCV</h2>
-    <div class="subtitle">Source: 07_Constants_EF_NCV — controlled constants, emission factors and fuel default values</div>
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('sliders', 20, 'page-title-icon')}
+        <h2>Constants, EF &amp; NCV</h2>
+      </div>
+      <div class="page-header-actions">
+        <span class="chip chip-controlled">${s.constants.length} general factors</span>
+        <span class="chip chip-controlled">${s.fuelDefaults.length} fuel defaults</span>
+      </div>
+    </div>
+    <div class="page-desc">Controlled constants, IPCC/GCCA stoichiometric conversion factors, default NCVs, and QA threshold bounds.</div>
   </div>
 
   ${buildDemoBanner(s)}
@@ -14,8 +23,10 @@ function renderConstants() {
   <!-- General Constants Table -->
   <div class="section-card mb-lg">
     <div class="section-card-header">
-      <h3>📊 General Constants &amp; QA Bounds</h3>
-      <span class="chip chip-controlled">${s.constants.length} entries</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('sliders', 15, 'text-muted')}
+        <h3 style="margin:0;">General Constants &amp; QA Bounds</h3>
+      </div>
     </div>
     <div class="section-card-body no-pad">
       <div class="table-wrapper" style="border:none;">
@@ -30,11 +41,11 @@ function renderConstants() {
               <td><strong>${escHtml(r['Constant / Factor']||'')}</strong></td>
               <td class="num mono" style="color:var(--accent);">${r.Value !== null ? fmtDec(parseFloat(r.Value),4) : '<span class="badge badge-missing">Missing</span>'}</td>
               <td class="unit-col">${escHtml(r.Unit||'')}</td>
-              <td style="font-size:11px;color:var(--text-secondary);max-width:220px;">${escHtml(r['Source / rationale']||'—')}</td>
+              <td style="font-size:11.5px;color:var(--text-secondary);max-width:220px;">${escHtml(r['Source / rationale']||'—')}</td>
               <td style="font-size:12px;color:var(--accent-2);">${escHtml(r['Used in']||'—')}</td>
               <td style="font-size:12px;">${escHtml(r['Change control']||'—')}</td>
               <td>${fmtStatusChip(r.Status)}</td>
-              <td style="font-size:11px;">${r['Source URL'] ? `<a href="${escHtml(r['Source URL'])}" target="_blank" class="text-accent" style="font-size:10px;">Link ↗</a>` : '—'}</td>
+              <td style="font-size:11px;">${r['Source URL'] ? `<a href="${escHtml(r['Source URL'])}" target="_blank" class="text-accent" style="font-size:11px;display:inline-flex;align-items:center;gap:3px;">Link ${renderIcon('external-link', 11)}</a>` : '—'}</td>
             </tr>`).join('')}
           </tbody>
         </table>
@@ -45,8 +56,10 @@ function renderConstants() {
   <!-- Fuel Defaults Table -->
   <div class="section-card">
     <div class="section-card-header">
-      <h3>⛽ Fuel Default NCV / EF / Oxidation Factors</h3>
-      <span class="chip chip-controlled">${s.fuelDefaults.length} fuel types</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('flame', 15, 'text-muted')}
+        <h3 style="margin:0;">Fuel Default NCV / EF / Oxidation Factors</h3>
+      </div>
     </div>
     <div class="section-card-body no-pad">
       <div class="table-wrapper" style="border:none;">
@@ -72,7 +85,7 @@ function renderConstants() {
               <td class="unit-col">${escHtml(r['EF Unit']||'')}</td>
               <td class="num">${fmt(r['Default Ox.'],'ratio')}</td>
               <td class="num" style="color:${isAlt?'var(--accent-3)':'var(--text-secondary)'};">${fmt(r['Default Biomass %'],'%')}</td>
-              <td style="font-size:11px;color:var(--text-muted);max-width:200px;">${escHtml(r['Notes']||'')}</td>
+              <td style="font-size:11.5px;color:var(--text-muted);max-width:200px;">${escHtml(r['Notes']||'')}</td>
             </tr>`;}).join('')}
           </tbody>
         </table>

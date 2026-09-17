@@ -28,30 +28,51 @@ function renderKilnFuel() {
 
   return `
   <div class="page-header">
-    <h2>🔥 Kiln Fuel Input</h2>
-    <div class="subtitle">Source: 05_Kiln_Fuel_Input — fuel quantities, NCV, EF, fossil/biogenic split and combustion CO₂</div>
-    <div class="badge-row">
-      <span class="badge badge-accent">${fmtInt(totalFossil)} tCO₂ fossil</span>
-      <span class="badge badge-purple">${fmtDec(totalBiogenic,2)} tCO₂ biogenic (memo)</span>
-      <span class="badge badge-info">${fmtInt(totalEnergy)} GJ total energy</span>
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('flame', 20, 'page-title-icon')}
+        <h2>Kiln Fuel Input</h2>
+      </div>
+      <div class="page-header-actions">
+        <span class="badge badge-accent">${fmtInt(totalFossil)} tCO₂ fossil</span>
+        <span class="badge badge-purple">${fmtDec(totalBiogenic,2)} tCO₂ biogenic</span>
+        <span class="badge badge-info">${fmtInt(totalEnergy)} GJ energy</span>
+      </div>
     </div>
+    <div class="page-desc">Fuel quantities, net calorific values (NCV), emission factors, biomass fractions, and combustion CO₂ balances.</div>
   </div>
 
   ${buildDemoBanner(s)}
 
   <div class="grid-2 mb-lg">
     <div class="chart-card">
-      <div class="chart-card-header"><h3>Fossil vs Biogenic CO₂ by Fuel Type</h3></div>
+      <div class="chart-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('bar-chart-2', 15, 'text-muted')}
+          <h3 style="margin:0;">Fossil vs Biogenic CO₂ by Fuel Type</h3>
+        </div>
+      </div>
       <div class="chart-container" style="height:220px;"><canvas id="chart-fuel-co2"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-card-header"><h3>Energy by Fuel Type (GJ)</h3></div>
+      <div class="chart-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('flame', 15, 'text-muted')}
+          <h3 style="margin:0;">Energy by Fuel Type (GJ)</h3>
+        </div>
+      </div>
       <div class="chart-container" style="height:220px;"><canvas id="chart-fuel-energy"></canvas></div>
     </div>
   </div>
 
   <div class="section-card">
-    <div class="section-card-header"><h3>📋 Fuel Activity Data</h3><span class="chip chip-controlled">${rows.length} rows</span></div>
+    <div class="section-card-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('file-text', 15, 'text-muted')}
+        <h3 style="margin:0;">Fuel Activity Register</h3>
+      </div>
+      <span class="chip chip-controlled">${rows.length} rows</span>
+    </div>
     <div class="section-card-body no-pad">
       <div class="table-wrapper" style="border:none;">
         <table class="data-table">
@@ -78,8 +99,8 @@ function renderKilnFuel() {
               <td class="num">${fmt(r['Fossil Fraction'],'ratio')}</td>
               <td class="num">${fmt(r['Energy GJ'],'GJ')}</td>
               <td class="num">${fmt(r['Energy TJ'],'TJ')}</td>
-              <td class="num" style="color:var(--qa-warn);">${fmt(r['Fossil CO2 t'],'tCO2')}</td>
-              <td class="num" style="color:var(--accent-3);">${fmt(r['Biogenic CO2 Memo t'],'tCO2')}</td>
+              <td class="num mono" style="color:var(--qa-warn);">${fmt(r['Fossil CO2 t'],'tCO2')}</td>
+              <td class="num mono" style="color:var(--accent-3);">${fmt(r['Biogenic CO2 Memo t'],'tCO2')}</td>
               <td>${evLink(r['Evidence ID'])}</td>
               <td>${fmtQaBadge(r['QA Status'])}</td>
             </tr>`).join('')}

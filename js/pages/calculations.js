@@ -35,15 +35,28 @@ function renderCalculations() {
 
   return `
   <div class="page-header">
-    <h2>🧮 Calculations</h2>
-    <div class="subtitle">Source: 08_Calculations — full CBAM-style emission calculation chain</div>
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('calculator', 20, 'page-title-icon')}
+        <h2>Calculations</h2>
+      </div>
+      <div class="page-header-actions">
+        <span class="chip chip-controlled">${s.calcRows.length} certified metrics</span>
+      </div>
+    </div>
+    <div class="page-desc">Complete MRV mathematical chain: process calcination, fuel combustion, grid Scope 2, and specific emissions intensity.</div>
   </div>
 
   ${buildDemoBanner(s)}
 
   <!-- VISUAL FLOW DIAGRAM -->
   <div class="section-card mb-lg">
-    <div class="section-card-header"><h3>📐 Calculation Flow Diagram</h3></div>
+    <div class="section-card-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('network', 15, 'text-muted')}
+        <h3 style="margin:0;">Calculation Flow Diagram</h3>
+      </div>
+    </div>
     <div class="section-card-body">
 
       <!-- Step 1: Process inputs to Direct Embedded CO2 -->
@@ -95,15 +108,21 @@ function renderCalculations() {
       </div>
 
       <!-- Biogenic memo -->
-      <div style="margin-top:16px;padding:12px 16px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.25);border-radius:var(--r);font-size:12px;color:var(--accent-3);">
-        📝 <strong>Biogenic CO₂ Memo:</strong> ${fmtDec(parseFloat(c['Biogenic CO2 Memo']?.Value)||0, 2)} tCO₂ — reported separately, NOT counted in embedded emissions per CBAM rules.
+      <div style="margin-top:16px;padding:12px 16px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.25);border-radius:var(--r);font-size:12px;color:var(--accent-3);display:flex;align-items:center;gap:8px;">
+        ${renderIcon('info', 15)}
+        <div><strong>Biogenic CO₂ Memo:</strong> ${fmtDec(parseFloat(c['Biogenic CO2 Memo']?.Value)||0, 2)} tCO₂ — reported separately, not counted in embedded emissions per CBAM rules.</div>
       </div>
     </div>
   </div>
 
   <!-- Full calculation table -->
   <div class="section-card">
-    <div class="section-card-header"><h3>📋 Full Calculation Chain</h3><span class="chip chip-controlled">${s.calcRows.length} metrics</span></div>
+    <div class="section-card-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('file-text', 15, 'text-muted')}
+        <h3 style="margin:0;">Full Calculation Chain</h3>
+      </div>
+    </div>
     <div class="section-card-body no-pad">
       <div class="table-wrapper" style="border:none;">
         <table class="data-table">
@@ -121,7 +140,7 @@ function renderCalculations() {
                 ${r.Value !== null && r.Value !== undefined ? fmt(r.Value, r.Unit) : '<span class="badge badge-missing">Missing</span>'}
               </td>
               <td class="unit-col">${escHtml(r.Unit||'')}</td>
-              <td style="font-size:11px;color:var(--text-secondary);max-width:280px;">${escHtml(r['Governance note']||'')}</td>
+              <td style="font-size:11.5px;color:var(--text-secondary);max-width:280px;">${escHtml(r['Governance note']||'')}</td>
               <td style="font-size:11px;color:var(--text-muted);">${escHtml(r['QA Source']||'')}</td>
             </tr>`;}).join('')}
           </tbody>

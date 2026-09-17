@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    pages/overview.js — Overview (Home) Page
-   Executive summary: KPI cards, CO2 donut, QA/QC pass rate,
+   Executive summary: Minimalist KPI cards, CO2 donut, QA/QC pass rate,
    evidence readiness, workbook context panel.
    All values sourced from STORE.calcRows, STORE.dashboard,
    STORE.qaqc, STORE.evidence, STORE.readme, STORE.setup.
@@ -24,8 +24,6 @@ function renderOverview() {
   const shc          = calcs['Specific Heat Consumption']?.Value;
   const qaStatus     = calcs['QA/QC Overall Status']?.Value;
   const evStatus     = calcs['Evidence Status']?.Value;
-  const gridMWh      = calcs['Grid Electricity MWh']?.Value;
-  const indirectCO2  = calcs['Indirect Grid CO2']?.Value;
 
   // QA/QC pass-rate from qaqc sheet
   const total  = s.qaqc.length;
@@ -53,8 +51,9 @@ function renderOverview() {
   const method  = s.setup['Selected calcination method'] || '—';
   const version = s.readme.find(r => r.Control === 'Workbook Version')?.Value || '—';
 
-  // Status badge color
-  const qaColor = qaStatus === 'PASS' ? 'pass' : 'fail';
+  // Status badge
+  const qaDotClass = qaStatus === 'PASS' ? 'qa-dot-pass' : 'qa-dot-fail';
+  const qaColor = qaStatus === 'PASS' ? 'badge-pass' : 'badge-fail';
 
   // Register CO2 donut chart
   registerDonutChart('chart-co2-donut', breakdown);
@@ -70,35 +69,42 @@ function renderOverview() {
   `).join('');
 
   // TSR display
-  const tsrVal = tsr !== null && tsr !== undefined ? fmtDec(parseFloat(tsr), 2) + ' %' : '—';
+  const tsrVal = tsr !== null && tsr !== undefined ? fmtDec(parseFloat(tsr), 2) : '—';
 
   return `
   <div class="page-header">
-    <h2>📊 Overview</h2>
-    <div class="subtitle">${escHtml(site)} · ${escHtml(country)} · ${escHtml(quarter)}</div>
-    <div class="badge-row">
-      <span class="badge badge-${qaColor}">${qaStatus === 'PASS' ? '✓' : '✗'} QA/QC ${escHtml(qaStatus||'—')}</span>
-      <span class="badge badge-info">📋 ${escHtml(product)}</span>
-      <span class="badge badge-accent">v${escHtml(version)}</span>
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('home', 20, 'page-title-icon')}
+        <h2>Overview</h2>
+      </div>
+      <div class="page-header-actions">
+        <span class="badge ${qaColor}" style="cursor:pointer;" data-explain="kpi-qaqc-status">
+          <span class="qa-dot ${qaDotClass}"></span>
+          QA/QC ${escHtml(qaStatus||'—')}
+        </span>
+        <span class="badge badge-accent">v${escHtml(version)}</span>
+      </div>
     </div>
+    <div class="page-desc">Executive summary for ${escHtml(site)} (${escHtml(country)}) · ${escHtml(quarter)} · Product: ${escHtml(product)}</div>
   </div>
 
   ${buildDemoBanner(s)}
 
   <!-- KPI Cards Row 1: Production -->
   <div class="grid-4 mb-lg">
-    ${kpiCard('🏭', 'Clinker Production', fmtRaw(clinkerProd, 0), 't', 'accent-card')}
-    ${kpiCard('🏗️', 'Cement Production', fmtRaw(cementProd, 0), 't', 'accent-card')}
-    ${kpiCard('⚖️', 'Clinker Factor', fmtRaw(clinkerFactor, 3), 'ratio', '')}
-    ${kpiCard('🌡️', 'Specific Heat', fmtRaw(shc, 3), 'GJ/t clinker', '')}
+    ${kpiCard('Clinker Production', fmtRaw(clinkerProd, 0), 't', 'Total kiln clinker produced in period', 'kpi-clinker-prod', 'accent-card')}
+    ${kpiCard('Cement Production', fmtRaw(cementProd, 0), 't', 'Total finished cement dispatched', 'kpi-cement-prod', 'accent-card')}
+    ${kpiCard('Clinker Factor', fmtRaw(clinkerFactor, 3), 'ratio', 'Proportion of clinker per ton of cement', 'kpi-clinker-factor')}
+    ${kpiCard('Specific Heat', fmtRaw(shc, 3), 'GJ/t clinker', 'Thermal energy consumed per ton clinker', 'kpi-specific-heat')}
   </div>
 
   <!-- KPI Cards Row 2: Emissions -->
   <div class="grid-4 mb-lg">
-    ${kpiCard('💨', 'Direct Embedded CO₂', fmtRaw(directCO2, 0), 'tCO₂', '')}
-    ${kpiCard('🌍', 'Total Embedded CO₂', fmtRaw(totalCO2, 0), 'tCO₂', '')}
-    ${kpiCard('📐', 'SEE Cement', fmtRaw(seeCement, 4), 'tCO₂/t cement', '')}
-    ${kpiCard('♻️', 'TSR', tsrVal, '', '')}
+    ${kpiCard('Direct Embedded CO₂', fmtRaw(directCO2, 0), 'tCO₂', 'Process calcination + fuel combustion', 'kpi-direct-co2')}
+    ${kpiCard('Total Embedded CO₂', fmtRaw(totalCO2, 0), 'tCO₂', 'Scope 1 direct + Scope 2 grid electricity', 'kpi-total-co2')}
+    ${kpiCard('SEE Cement', fmtRaw(seeCement, 4), 'tCO₂/t cement', 'Specific embedded emissions intensity', 'kpi-see-cement')}
+    ${kpiCard('Thermal Substitution', tsrVal, tsrVal !== '—' ? '%' : '', 'Alternative fuel thermal share', 'kpi-tsr')}
   </div>
 
   <!-- Main body: 2-column layout -->
@@ -107,17 +113,23 @@ function renderOverview() {
     <!-- CO2 Breakdown chart -->
     <div class="chart-card">
       <div class="chart-card-header">
-        <h3>CO₂ Component Breakdown</h3>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('bar-chart-2', 15, 'text-muted')}
+          <h3 style="margin:0;">CO₂ Component Breakdown</h3>
+        </div>
         <span class="badge badge-accent">${fmtRaw(totalCO2, 0)} tCO₂ total</span>
       </div>
       <div style="display:flex;gap:24px;align-items:center;">
-        <div class="chart-container" style="height:220px;width:220px;flex-shrink:0;">
+        <div class="chart-container" style="height:200px;width:200px;flex-shrink:0;">
           <canvas id="chart-co2-donut"></canvas>
         </div>
         <div style="flex:1;">
           ${breakdownRows}
           <div class="divider" style="margin:12px 0"></div>
-          <div style="font-size:11px;color:var(--text-muted);">Direct = Process CO₂ + Fuel Combustion CO₂<br>Total = Direct + Indirect Grid CO₂</div>
+          <div style="font-size:11px;color:var(--text-muted);line-height:1.4;">
+            Direct = Calcination + Fuel Combustion<br>
+            Total = Direct + Indirect Grid CO₂
+          </div>
         </div>
       </div>
     </div>
@@ -125,8 +137,11 @@ function renderOverview() {
     <!-- Workbook Context -->
     <div class="section-card">
       <div class="section-card-header">
-        <h3>📋 Workbook Context</h3>
-        <span class="chip chip-demo">v${escHtml(version)}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('file-text', 15, 'text-muted')}
+          <h3 style="margin:0;">Workbook Context</h3>
+        </div>
+        <span class="chip chip-controlled">v${escHtml(version)}</span>
       </div>
       <div class="section-card-body" style="padding:0">
         <div class="kv-panel">
@@ -137,7 +152,7 @@ function renderOverview() {
           ${kvRow('Product', product)}
           ${kvRow('Calcination Method', method)}
           ${kvRow('Evidence Status', evStatus || '—')}
-          ${kvRow('QA/QC Status', `<span class="badge badge-${qaColor}">${escHtml(qaStatus||'—')}</span>`)}
+          ${kvRow('QA/QC Status', `<span class="badge ${qaColor}"><span class="qa-dot ${qaDotClass}"></span> ${escHtml(qaStatus||'—')}</span>`)}
         </div>
       </div>
     </div>
@@ -148,8 +163,13 @@ function renderOverview() {
     <!-- QA/QC scorecard -->
     <div class="section-card">
       <div class="section-card-header">
-        <h3>✅ QA/QC Summary</h3>
-        <a href="#qaqc" class="btn btn-secondary btn-sm" onclick="navigate('qaqc')">View All Checks →</a>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('check-circle', 15, 'text-muted')}
+          <h3 style="margin:0;">QA/QC Summary</h3>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="navigate('qaqc')">
+          View All Checks ${renderIcon('chevron-right', 12)}
+        </button>
       </div>
       <div class="section-card-body">
         <div class="scorecard" style="padding:0;background:transparent;border:none;margin-bottom:16px;">
@@ -182,8 +202,13 @@ function renderOverview() {
     <!-- Evidence Register summary -->
     <div class="section-card">
       <div class="section-card-header">
-        <h3>📁 Evidence Readiness</h3>
-        <a href="#evidence" class="btn btn-secondary btn-sm" onclick="navigate('evidence')">View Register →</a>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('folder', 15, 'text-muted')}
+          <h3 style="margin:0;">Evidence Readiness</h3>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="navigate('evidence')">
+          View Register ${renderIcon('chevron-right', 12)}
+        </button>
       </div>
       <div class="section-card-body">
         <div class="scorecard" style="padding:0;background:transparent;border:none;margin-bottom:16px;">
@@ -205,10 +230,10 @@ function renderOverview() {
         </div>
         <div style="margin-top:16px;font-size:12px;color:var(--text-secondary);">
           ${evPending > 0
-            ? `<span class="badge badge-warn">⚠ ${evPending} evidence item${evPending>1?'s':''} pending review</span>`
-            : '<span class="badge badge-pass">✓ All evidence mapped and ready</span>'}
+            ? `<span class="badge badge-warn"><span class="qa-dot qa-dot-warn"></span> ${evPending} evidence item${evPending>1?'s':''} pending review</span>`
+            : '<span class="badge badge-pass"><span class="qa-dot qa-dot-pass"></span> All evidence mapped and verified</span>'}
         </div>
-        <div style="margin-top:12px;font-size:11px;color:var(--text-muted);">
+        <div style="margin-top:10px;font-size:11px;color:var(--text-muted);">
           Evidence covers: Production, Raw Material, Fuel (×4), Electricity (×3), Factor Library, QA/QC
         </div>
       </div>
@@ -217,7 +242,12 @@ function renderOverview() {
 
   <!-- Key emission metrics row -->
   <div class="section-card">
-    <div class="section-card-header"><h3>🔢 Key Emission Metrics (from 08_Calculations)</h3></div>
+    <div class="section-card-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('calculator', 15, 'text-muted')}
+        <h3 style="margin:0;">Key Emission Metrics (from 08_Calculations)</h3>
+      </div>
+    </div>
     <div class="section-card-body no-pad">
       <div class="table-wrapper" style="border:none;">
         <table class="data-table">
@@ -230,7 +260,7 @@ function renderOverview() {
               <td><strong>${escHtml(r.Metric)}</strong></td>
               <td class="num mono">${fmt(r.Value, r.Unit)}</td>
               <td class="unit-col">${escHtml(r.Unit||'')}</td>
-              <td style="font-size:11px;color:var(--text-secondary);max-width:280px;">${escHtml(r['Governance note']||'')}</td>
+              <td style="font-size:11.5px;color:var(--text-secondary);max-width:280px;">${escHtml(r['Governance note']||'')}</td>
               <td style="font-size:11px;color:var(--text-muted);">${escHtml(r['QA Source']||'')}</td>
             </tr>`).join('')}
           </tbody>
@@ -273,14 +303,21 @@ function buildQaCategoryMiniSummary(qaqc) {
   `).join('');
 }
 
-function kpiCard(icon, label, value, unit, cls) {
+function kpiCard(label, value, unit, desc, key = '', cls = '') {
   const v = value !== null && value !== undefined ? value : '—';
   return `
-    <div class="kpi-card ${cls}">
-      <div class="kpi-icon">${icon}</div>
-      <div class="kpi-label">${escHtml(label)}</div>
-      <div class="kpi-value">${v !== '—' ? `<span class="mono">${v}</span>` : '—'}</div>
-      ${unit ? `<div class="kpi-unit">${escHtml(unit)}</div>` : ''}
+    <div class="kpi-card ${cls}" ${key ? `data-explain="${key}"` : ''} title="Click to view explanation">
+      <div class="kpi-top">
+        <span class="kpi-label">${escHtml(label)}</span>
+        <button class="kpi-info-trigger" aria-label="Information" tabindex="-1">
+          ${renderIcon('info', 13)}
+        </button>
+      </div>
+      <div class="kpi-val-row">
+        <span class="kpi-value">${v !== '—' ? `<span class="mono">${v}</span>` : '—'}</span>
+        ${unit ? `<span class="kpi-unit">${escHtml(unit)}</span>` : ''}
+      </div>
+      ${desc ? `<div class="kpi-desc">${escHtml(desc)}</div>` : ''}
     </div>`;
 }
 
@@ -289,3 +326,4 @@ function kvRow(key, val) {
 }
 
 window.renderOverview = renderOverview;
+window.kpiCard = kpiCard;

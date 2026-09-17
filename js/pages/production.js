@@ -20,25 +20,48 @@ function renderProduction() {
 
   return `
   <div class="page-header">
-    <h2>🏭 Production Input</h2>
-    <div class="subtitle">Source: 03_Production_Input — monthly clinker/cement production, clinker factor and additives</div>
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('factory', 20, 'page-title-icon')}
+        <h2>Production Input</h2>
+      </div>
+      <div class="page-header-actions">
+        <span class="chip chip-controlled">${rows.length} reporting months</span>
+      </div>
+    </div>
+    <div class="page-desc">Monthly kiln clinker output, finished cement production, clinker-to-cement ratios, and additive mass balances.</div>
   </div>
 
   ${buildDemoBanner(s)}
 
   <div class="grid-2 mb-lg">
     <div class="chart-card">
-      <div class="chart-card-header"><h3>Clinker & Cement Production Trend</h3></div>
+      <div class="chart-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('trending-up', 15, 'text-muted')}
+          <h3 style="margin:0;">Clinker &amp; Cement Production Trend</h3>
+        </div>
+      </div>
       <div class="chart-container" style="height:220px;"><canvas id="chart-prod-trend"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-card-header"><h3>Clinker Factor Trend</h3></div>
+      <div class="chart-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('sliders', 15, 'text-muted')}
+          <h3 style="margin:0;">Clinker Factor Trend</h3>
+        </div>
+      </div>
       <div class="chart-container" style="height:220px;"><canvas id="chart-factor-trend"></canvas></div>
     </div>
   </div>
 
   <div class="section-card">
-    <div class="section-card-header"><h3>📋 Monthly Production Data</h3><span class="chip chip-controlled">${rows.length} rows</span></div>
+    <div class="section-card-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('file-text', 15, 'text-muted')}
+        <h3 style="margin:0;">Monthly Production Register</h3>
+      </div>
+    </div>
     <div class="section-card-body no-pad">
       <div class="table-wrapper" style="border:none;">
         <table class="data-table">
@@ -66,7 +89,7 @@ function renderProduction() {
               <td class="num mono" style="color:var(--accent);">${fmt(r['Clinker Factor'],'ratio')}</td>
               <td>${evLink(r['Evidence ID'])}</td>
               <td>${fmtQaBadge(r['QA Status'])}</td>
-              <td style="font-size:11px;color:var(--text-muted);max-width:200px;">${escHtml(r.Notes||'')}</td>
+              <td style="font-size:11.5px;color:var(--text-muted);max-width:200px;">${escHtml(r.Notes||'')}</td>
             </tr>`).join('')}
           </tbody>
         </table>

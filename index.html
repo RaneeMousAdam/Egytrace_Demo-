@@ -51,7 +51,9 @@
   <!-- Initial loading screen -->
   <div id="initial-loading">
     <div class="il-logo">
-      <div class="il-icon">🏭</div>
+      <div class="il-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20V8l5 4V8l5 4V4l5 4v12"/></svg>
+      </div>
       <div class="il-title">TRACE FORCE MRV</div>
       <div class="il-sub">Cement QA/QC Dashboard — Loading…</div>
     </div>
@@ -64,13 +66,17 @@
     <aside id="sidebar" role="navigation" aria-label="Main navigation">
       <div class="sidebar-header">
         <div class="sidebar-logo">
-          <div class="logo-icon" aria-hidden="true">🏭</div>
+          <div class="logo-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20V8l5 4V8l5 4V4l5 4v12"/></svg>
+          </div>
           <div class="logo-text">
             <div class="brand">TRACE FORCE</div>
             <div class="sub">MRV · Cement QA/QC</div>
           </div>
         </div>
-        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Collapse sidebar" aria-label="Toggle sidebar">‹</button>
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Collapse sidebar" aria-label="Toggle sidebar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
       </div>
       <nav class="sidebar-nav" id="sidebar-nav" role="list"></nav>
     </aside>
@@ -92,6 +98,9 @@
   <!-- Dynamically injected by app.js -->
 
   <!-- ── JavaScript — load in dependency order ─────────────────── -->
+  <!-- 0. Core UI Foundations (Icons & Explanations) -->
+  <script src="js/icons.js"></script>
+  <script src="js/explain.js"></script>
   <!-- 1. Data model -->
   <script src="js/store.js"></script>
   <!-- 2. Formatting utilities -->

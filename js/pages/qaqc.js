@@ -28,14 +28,22 @@ function renderQaqc() {
   registerHBarChart('chart-qa-cats', catLabels, catPass, catColors);
 
   const overallBadge = failed > 0
-    ? '<span class="badge badge-fail" style="font-size:14px;">✗ FAIL</span>'
-    : '<span class="badge badge-pass" style="font-size:14px;">✓ PASS</span>';
+    ? '<span class="badge badge-fail"><span class="qa-dot qa-dot-fail"></span> Fail</span>'
+    : '<span class="badge badge-pass"><span class="qa-dot qa-dot-pass"></span> Pass</span>';
 
   return `
   <div class="page-header">
-    <h2>✅ QA/QC Checks</h2>
-    <div class="subtitle">Source: 09_QAQC_Checks — ${total} checks across ${Object.keys(cats).length} categories</div>
-    <div class="badge-row">${overallBadge}</div>
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('check-circle', 20, 'page-title-icon')}
+        <h2>QA/QC Checks</h2>
+      </div>
+      <div class="page-header-actions">
+        ${overallBadge}
+        <span class="chip chip-controlled">${total} checks</span>
+      </div>
+    </div>
+    <div class="page-desc">Automated validation matrix evaluating mass balances, stoichiometric bounds, and data completeness across ${Object.keys(cats).length} categories.</div>
   </div>
 
   ${buildDemoBanner(s)}
@@ -45,35 +53,40 @@ function renderQaqc() {
     <div class="card">
       <div style="display:flex;align-items:center;gap:24px;margin-bottom:16px;">
         <div style="text-align:center;">
-          <div style="font-size:48px;font-weight:800;color:${failed>0?'var(--qa-fail)':'var(--qa-pass)'};" class="mono">${passed}</div>
-          <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;">Passed</div>
+          <div style="font-size:44px;font-weight:800;color:${failed>0?'var(--qa-fail)':'var(--qa-pass)'};" class="mono">${passed}</div>
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;">Passed</div>
         </div>
-        <div style="font-size:32px;color:var(--text-muted);">/</div>
+        <div style="font-size:28px;color:var(--text-muted);">/</div>
         <div style="text-align:center;">
-          <div style="font-size:48px;font-weight:800;color:var(--text-secondary);" class="mono">${total}</div>
-          <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;">Total</div>
+          <div style="font-size:44px;font-weight:800;color:var(--text-secondary);" class="mono">${total}</div>
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;">Total</div>
         </div>
         <div style="flex:1;">
-          <div style="font-size:32px;font-weight:800;color:${qaPct===100?'var(--qa-pass)':'var(--qa-warn)'};" class="mono">${qaPct}%</div>
-          <div style="font-size:12px;color:var(--text-muted);">Pass Rate</div>
+          <div style="font-size:28px;font-weight:800;color:${qaPct===100?'var(--qa-pass)':'var(--qa-warn)'};" class="mono">${qaPct}%</div>
+          <div style="font-size:11px;color:var(--text-muted);">Pass Rate</div>
           <div class="progress-bar mt-sm">
             <div class="progress-fill" style="width:${qaPct}%;background:${qaPct===100?'var(--qa-pass)':'var(--qa-warn)'}"></div>
           </div>
         </div>
       </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
         ${Object.entries(cats).map(([cat, rows]) => {
           const catFail = rows.filter(r => String(r.Status).toUpperCase()==='FAIL').length;
           const catPass2 = rows.length - catFail;
-          return `<div style="background:${catFail>0?'var(--qa-fail-dim)':'var(--qa-pass-dim)'};border:1px solid ${catFail>0?'var(--qa-fail-border)':'var(--qa-pass-border)'};border-radius:var(--r-sm);padding:6px 12px;">
-            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;">${escHtml(cat)}</div>
-            <div style="font-size:14px;font-weight:700;color:${catFail>0?'var(--qa-fail)':'var(--qa-pass)'};">${catPass2}/${rows.length}</div>
+          return `<div style="background:${catFail>0?'var(--qa-fail-dim)':'var(--qa-pass-dim)'};border:1px solid ${catFail>0?'var(--qa-fail-border)':'var(--qa-pass-border)'};border-radius:var(--r-sm);padding:5px 10px;">
+            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:600;">${escHtml(cat)}</div>
+            <div style="font-size:13px;font-weight:700;color:${catFail>0?'var(--qa-fail)':'var(--qa-pass)'};">${catPass2}/${rows.length}</div>
           </div>`;
         }).join('')}
       </div>
     </div>
     <div class="chart-card">
-      <div class="chart-card-header"><h3>Checks Passed by Category</h3></div>
+      <div class="chart-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('bar-chart-2', 15, 'text-muted')}
+          <h3 style="margin:0;">Checks Passed by Category</h3>
+        </div>
+      </div>
       <div class="chart-container" style="height:180px;"><canvas id="chart-qa-cats"></canvas></div>
     </div>
   </div>
@@ -103,7 +116,7 @@ function renderQaqc() {
           <tr style="${rowBg}">
             <td class="mono" style="color:var(--accent-2);font-size:11px;">${escHtml(r['Check ID']||'')}</td>
             <td><strong>${escHtml(r['Check Name']||'')}</strong></td>
-            <td style="font-size:11px;color:var(--text-secondary);max-width:200px;">${escHtml(r.Rule||'')}</td>
+            <td style="font-size:11.5px;color:var(--text-secondary);max-width:200px;">${escHtml(r.Rule||'')}</td>
             <td class="num mono" style="font-size:12px;">${escHtml(String(r.Result||''))}</td>
             <td>${fmtQaBadge(r.Status, r.Severity)}</td>
             <td>${fmtSeverityBadge(r.Severity)}</td>

@@ -4,21 +4,21 @@
 
 /* ── Route map ─────────────────────────────────────────────────── */
 const ROUTES = {
-  'overview':    { label: 'Overview',                  icon: '🏠', render: () => renderOverview()          },
-  'governance':  { label: 'Governance & Control',      icon: '🏛️', render: () => renderGovernance()        },
-  'setup':       { label: 'Setup & Reporting Period',  icon: '⚙️', render: () => renderSetup()             },
-  'dcs':         { label: 'DCS / ERP / Lab Boundary',  icon: '🗺️', render: () => renderDcsBoundary()       },
-  'production':  { label: 'Production Input',          icon: '🏭', render: () => renderProduction()        },
-  'rawmaterial': { label: 'Raw Material Input',        icon: '🪨', render: () => renderRawMaterial()       },
-  'kilnfuel':    { label: 'Kiln Fuel Input',           icon: '🔥', render: () => renderKilnFuel()          },
-  'electricity': { label: 'Electricity Input',         icon: '⚡', render: () => renderElectricity()       },
-  'constants':   { label: 'Constants, EF & NCV',       icon: '🔬', render: () => renderConstants()         },
-  'calculations':{ label: 'Calculations',              icon: '🧮', render: () => renderCalculations()      },
-  'qaqc':        { label: 'QA/QC Checks',              icon: '✅', render: () => renderQaqc()              },
-  'reportouts':  { label: 'Report Outputs',            icon: '📄', render: () => renderReportOutputs()     },
-  'evidence':    { label: 'Evidence Register',         icon: '📁', render: () => renderEvidence()          },
-  'regulatory':  { label: 'Regulatory References',     icon: '📜', render: () => renderRegulatory()        },
-  'analytics':   { label: 'Analytics Dashboard',       icon: '📈', render: () => renderAnalyticsDashboard()},
+  'overview':    { label: 'Overview',                  icon: 'home',            render: () => renderOverview()          },
+  'governance':  { label: 'Governance & Control',      icon: 'shield',          render: () => renderGovernance()        },
+  'setup':       { label: 'Setup & Reporting Period',  icon: 'settings',        render: () => renderSetup()             },
+  'dcs':         { label: 'DCS / ERP / Lab Boundary',  icon: 'network',         render: () => renderDcsBoundary()       },
+  'production':  { label: 'Production Input',          icon: 'factory',         render: () => renderProduction()        },
+  'rawmaterial': { label: 'Raw Material Input',        icon: 'package',         render: () => renderRawMaterial()       },
+  'kilnfuel':    { label: 'Kiln Fuel Input',           icon: 'flame',           render: () => renderKilnFuel()          },
+  'electricity': { label: 'Electricity Input',         icon: 'zap',             render: () => renderElectricity()       },
+  'constants':   { label: 'Constants, EF & NCV',       icon: 'sliders',         render: () => renderConstants()         },
+  'calculations':{ label: 'Calculations',              icon: 'calculator',      render: () => renderCalculations()      },
+  'qaqc':        { label: 'QA/QC Checks',              icon: 'check-circle',    render: () => renderQaqc()              },
+  'reportouts':  { label: 'Report Outputs',            icon: 'file-text',       render: () => renderReportOutputs()     },
+  'evidence':    { label: 'Evidence Register',         icon: 'folder',          render: () => renderEvidence()          },
+  'regulatory':  { label: 'Regulatory References',     icon: 'book-open',       render: () => renderRegulatory()        },
+  'analytics':   { label: 'Analytics Dashboard',       icon: 'bar-chart-2',     render: () => renderAnalyticsDashboard()},
 };
 
 let _currentPage = 'overview';
@@ -59,9 +59,9 @@ function buildSidebar() {
     ${sec.keys.map(key => {
       const r = ROUTES[key];
       if (!r) return '';
-      return `<div class="nav-item" id="nav-${key}" onclick="navigate('${key}')">
-        <span class="nav-icon">${r.icon}</span>
-        <span class="nav-label">${r.label}</span>
+      return `<div class="nav-item" id="nav-${key}" onclick="navigate('${key}')" data-explain="nav-${key}" title="Click to view ${escHtml(r.label)}">
+        <span class="nav-icon">${renderIcon(r.icon, 16)}</span>
+        <span class="nav-label">${escHtml(r.label)}</span>
       </div>`;
     }).join('')}
   `).join('');
@@ -75,21 +75,30 @@ function buildTopbar() {
   const site    = s?._valid ? (s.setup['Installation / site'] || 'Demo Cement Plant') : 'TRACE FORCE MRV';
   const quarter = s?._valid ? (s.setup['Reporting quarter'] || '—') : 'No workbook loaded';
   const qaStatus= s?._valid ? (s.calculations['QA/QC Overall Status']?.Value || '—') : null;
+  const qaDotClass = qaStatus === 'PASS' ? 'qa-dot-pass' : qaStatus === 'FAIL' ? 'qa-dot-fail' : 'qa-dot-warn';
   const qaColor = qaStatus === 'PASS' ? 'badge-pass' : qaStatus === 'FAIL' ? 'badge-fail' : 'badge-info';
 
   tb.innerHTML = `
-    <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+    <button class="btn btn-secondary btn-icon" onclick="toggleSidebar()" title="Toggle sidebar" aria-label="Toggle sidebar">
+      ${renderIcon('menu', 14)}
+    </button>
     <div class="topbar-site">
       <div class="site-name">${escHtml(site)}</div>
       <div class="site-period">${escHtml(quarter)}</div>
     </div>
     <div class="topbar-spacer"></div>
     <div class="topbar-actions">
-      ${qaStatus ? `<span class="badge ${qaColor}" style="font-size:12px;">${qaStatus==='PASS'?'✓':'✗'} QA/QC ${escHtml(qaStatus)}</span>` : ''}
-      <label class="btn btn-secondary btn-sm" for="file-input" style="cursor:pointer;">📂 Upload Workbook</label>
+      ${qaStatus ? `<span class="badge ${qaColor}" style="font-size:11.5px;cursor:pointer;" data-explain="kpi-qaqc-status"><span class="qa-dot ${qaDotClass}"></span> QA/QC ${escHtml(qaStatus)}</span>` : ''}
+      <label class="btn btn-secondary btn-sm" for="file-input" style="cursor:pointer;" data-explain="btn-upload">
+        ${renderIcon('upload', 14)} Upload Workbook
+      </label>
       <input type="file" id="file-input" accept=".xlsx,.xlsm" style="display:none;" onchange="handleFileInput(event)">
-      <button class="btn btn-primary btn-sm" id="btn-download-pdf" onclick="downloadPDF()">⬇ Download Report</button>
-      <button class="btn btn-accent2 btn-sm" onclick="downloadExcel()">📊 Export Excel</button>
+      <button class="btn btn-primary btn-sm" id="btn-download-pdf" onclick="downloadPDF()" data-explain="btn-download-pdf">
+        ${renderIcon('download', 14)} Download Report
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="downloadExcel()" data-explain="btn-export-excel">
+        ${renderIcon('file-spreadsheet', 14)} Export Excel
+      </button>
     </div>`;
 }
 
@@ -106,7 +115,7 @@ function buildFooter() {
     const status    = statusRow?.Value || '';
     const isDemo    = status.includes('DEMO');
     if (isDemo) {
-      disclaimerText = `<span class="demo-flag">⚠ ${escHtml(status)}</span> — ${escHtml(govNote)}`;
+      disclaimerText = `<span class="demo-flag">${renderIcon('alert-triangle', 12)} ${escHtml(status)}</span> — ${escHtml(govNote)}`;
     } else {
       disclaimerText = escHtml(status ? `${status} | ${govNote}` : govNote);
     }
@@ -126,12 +135,14 @@ function showUploadPrompt() {
   prompt.style.display = 'flex';
   prompt.innerHTML = `
     <div class="upload-card">
-      <div class="uc-icon">📊</div>
+      <div class="uc-icon" style="color:var(--accent);display:flex;justify-content:center;margin-bottom:16px;">
+        ${renderIcon('upload', 40)}
+      </div>
       <h2>TRACE FORCE MRV</h2>
       <p>Upload your <strong>TRACE_FORCE_MRV_Cement_QAQC_V28</strong> workbook to begin.<br>
       All 14 sheets will be parsed and validated automatically.</p>
-      <label class="btn btn-primary" for="file-input-modal" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-        📂 Select Workbook (.xlsx)
+      <label class="btn btn-primary" for="file-input-modal" style="cursor:pointer;" data-explain="btn-upload">
+        ${renderIcon('upload', 16)} Select Workbook (.xlsx)
       </label>
       <input type="file" id="file-input-modal" accept=".xlsx,.xlsm" style="display:none;" onchange="handleFileInput(event)">
       <div style="margin-top:16px;font-size:11px;color:var(--text-muted);">
@@ -170,7 +181,10 @@ function navigate(pageKey) {
   if (window.STORE._errors && window.STORE._errors.length > 0) {
     content.innerHTML = `
       <div class="error-banner">
-        <h3>⚠ Schema Validation Errors — some pages may not render correctly</h3>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          ${renderIcon('alert-triangle', 16)}
+          <h3 style="margin:0;">Schema Validation Warnings — some fields may not render</h3>
+        </div>
         <ul>${window.STORE._errors.map(e => `<li>${escHtml(e)}</li>`).join('')}</ul>
       </div>
       ${ROUTES[pageKey].render()}`;
@@ -213,11 +227,14 @@ function handleFileInput(event) {
         if (content) {
           content.innerHTML = `
             <div class="error-banner">
-              <h3>❌ Workbook Validation Failed</h3>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                ${renderIcon('alert-triangle', 16)}
+                <h3 style="margin:0;">Workbook Validation Failed</h3>
+              </div>
               <ul>${store._errors.map(err => `<li>${escHtml(err)}</li>`).join('')}</ul>
             </div>
             <div class="state-box">
-              <div class="state-icon">📊</div>
+              <div class="state-icon" style="color:var(--accent);">${renderIcon('file-text', 40)}</div>
               <div class="state-title">Please upload a valid V28 workbook</div>
             </div>`;
         }
@@ -238,7 +255,7 @@ function handleFileInput(event) {
     } catch(err) {
       console.error('Parse error:', err);
       if (content) {
-        content.innerHTML = `<div class="state-box"><div class="state-icon">❌</div><div class="state-title">Failed to parse workbook</div><div class="state-sub">${escHtml(err.message)}</div></div>`;
+        content.innerHTML = `<div class="state-box"><div class="state-icon" style="color:var(--qa-fail);">${renderIcon('x-circle', 40)}</div><div class="state-title">Failed to parse workbook</div><div class="state-sub">${escHtml(err.message)}</div></div>`;
       }
     }
   };
@@ -273,10 +290,12 @@ function setupDragDrop() {
 /* ── Shared helpers used by multiple page renderers ────────────── */
 function renderEmptyState(title, sub) {
   return `<div class="state-box">
-    <div class="state-icon">📊</div>
+    <div class="state-icon" style="color:var(--accent);">${renderIcon('file-text', 40)}</div>
     <div class="state-title">${escHtml(title)}</div>
     <div class="state-sub">${escHtml(sub)}</div>
-    <label class="btn btn-primary" for="file-input" style="cursor:pointer;margin-top:8px;">📂 Upload Workbook</label>
+    <label class="btn btn-primary" for="file-input" style="cursor:pointer;margin-top:8px;" data-explain="btn-upload">
+      ${renderIcon('upload', 14)} Upload Workbook
+    </label>
   </div>`;
 }
 
@@ -285,7 +304,7 @@ function buildDemoBanner(s) {
   const statusRow = s.readme.find(r => r.Control === 'Status');
   if (!statusRow || !String(statusRow.Value).includes('DEMO')) return '';
   return `<div class="demo-banner">
-    <span>⚠️</span>
+    ${renderIcon('alert-triangle', 14)}
     <strong>${escHtml(statusRow.Value)}</strong> — ${escHtml(statusRow['Governance note'] || '')}
   </div>`;
 }

@@ -17,25 +17,48 @@ function renderRawMaterial() {
 
   return `
   <div class="page-header">
-    <h2>🪨 Raw Material Input</h2>
-    <div class="subtitle">Source: 04_Raw_Material_Input — carbonate input pathway (Method A)</div>
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('package', 20, 'page-title-icon')}
+        <h2>Raw Material Input</h2>
+      </div>
+      <div class="page-header-actions">
+        <span class="chip chip-controlled">${rows.length} records</span>
+      </div>
+    </div>
+    <div class="page-desc">Carbonate input consumption, chemical assay (CaCO₃, MgCO₃, moisture), and calcination process CO₂ (Method A).</div>
   </div>
 
   ${buildDemoBanner(s)}
 
   <div class="grid-2 mb-lg">
     <div class="chart-card">
-      <div class="chart-card-header"><h3>Raw Material Quantity Trend</h3></div>
+      <div class="chart-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('trending-up', 15, 'text-muted')}
+          <h3 style="margin:0;">Raw Material Quantity Trend</h3>
+        </div>
+      </div>
       <div class="chart-container" style="height:200px;"><canvas id="chart-rawmat-qty"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-card-header"><h3>Process CO₂ Trend (Method A)</h3></div>
+      <div class="chart-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${renderIcon('bar-chart-2', 15, 'text-muted')}
+          <h3 style="margin:0;">Process CO₂ Trend (Method A)</h3>
+        </div>
+      </div>
       <div class="chart-container" style="height:200px;"><canvas id="chart-rawmat-co2"></canvas></div>
     </div>
   </div>
 
   <div class="section-card">
-    <div class="section-card-header"><h3>📋 Monthly Raw Material Data</h3></div>
+    <div class="section-card-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('file-text', 15, 'text-muted')}
+        <h3 style="margin:0;">Monthly Raw Material Data</h3>
+      </div>
+    </div>
     <div class="section-card-body no-pad">
       <div class="table-wrapper" style="border:none;">
         <table class="data-table">
@@ -59,7 +82,7 @@ function renderRawMaterial() {
               <td class="num">${fmt(r['Calcination Conversion'],'ratio')}</td>
               <td class="num">${fmt(r['CaCO3 CO2 t'],'tCO2')}</td>
               <td class="num">${fmt(r['MgCO3 CO2 t'],'tCO2')}</td>
-              <td class="num" style="color:var(--accent);">${fmt(r['Process CO2 Method A t'],'tCO2')}</td>
+              <td class="num mono" style="color:var(--accent);">${fmt(r['Process CO2 Method A t'],'tCO2')}</td>
               <td>${evLink(r['Evidence ID'])}</td>
               <td>${fmtQaBadge(r['QA Status'])}</td>
             </tr>`).join('')}

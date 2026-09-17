@@ -19,8 +19,13 @@ function renderSetup() {
 
   return `
   <div class="page-header">
-    <h2>⚙️ Setup &amp; Reporting Period</h2>
-    <div class="subtitle">Source: 01_Setup — site, period, product, methodology and governance parameters</div>
+    <div class="page-title-row">
+      <div class="page-title-wrap">
+        ${renderIcon('settings', 20, 'page-title-icon')}
+        <h2>Setup &amp; Reporting Period</h2>
+      </div>
+    </div>
+    <div class="page-desc">Facility boundaries, reporting period timeframe, calcination methodology, and governance owners.</div>
   </div>
 
   ${buildDemoBanner(s)}
@@ -28,8 +33,11 @@ function renderSetup() {
   ${orderedGroups.map(owner => `
   <div class="section-card mb-lg">
     <div class="section-card-header">
-      <h3>${escHtml(owner)} Parameters</h3>
-      <span class="chip chip-controlled">${groups[owner].length} params</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${renderIcon('sliders', 15, 'text-muted')}
+        <h3 style="margin:0;">${escHtml(owner)} Parameters</h3>
+      </div>
+      <span class="chip chip-controlled">${groups[owner].length} items</span>
     </div>
     <div class="section-card-body no-pad">
       <table class="gov-table">
@@ -48,7 +56,7 @@ function renderSetup() {
             <td class="gov-key">${escHtml(r.Parameter || '')}</td>
             <td class="gov-val"><strong>${escHtml(r.Value || '—')}</strong></td>
             <td style="font-size:11px;color:var(--text-muted);">${escHtml(r.Unit || '')}</td>
-            <td>${r['Required?'] === 'Yes' ? '<span class="chip chip-approved" style="font-size:10px;">Yes</span>' : '<span style="font-size:11px;color:var(--text-muted);">No</span>'}</td>
+            <td>${r['Required?'] === 'Yes' ? '<span class="badge badge-pass" style="font-size:10px;">Required</span>' : '<span style="font-size:11px;color:var(--text-muted);">Optional</span>'}</td>
             <td class="gov-note">${escHtml(r.Notes || '')}</td>
           </tr>`).join('')}
         </tbody>

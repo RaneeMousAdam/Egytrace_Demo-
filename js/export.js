@@ -80,7 +80,7 @@ async function downloadPDF() {
       doc.roundedRect(M, cy + 4, TW, 18, 3, 3, 'F');
       doc.setTextColor(245, 158, 11);
       doc.setFontSize(9); doc.setFont('helvetica','bold');
-      doc.text('⚠  ' + String(statusNote.Value), M + 5, cy + 13);
+      doc.text('STATUS: ' + String(statusNote.Value), M + 5, cy + 13);
       doc.setTextColor(143, 163, 200); doc.setFont('helvetica','normal');
       doc.text(String(statusNote['Governance note'] || ''), M + 5, cy + 19, { maxWidth: TW - 10 });
     }
