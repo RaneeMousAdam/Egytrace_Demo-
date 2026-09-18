@@ -12,3 +12,10 @@ workbook_data.txt
 .DS_Store
 Thumbs.db
 *.log
+
+# Next.js
+node_modules
+.next
+out
+.vercel
+*.tsbuildinfo
