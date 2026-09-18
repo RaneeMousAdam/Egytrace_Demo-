@@ -11,6 +11,8 @@ interface StoreContextValue {
   collapsed: boolean;
   toggleSidebar: () => void;
   handleFile: (file: File) => void;
+  setStoreData: (store: Store) => void;
+  clearStore: () => void;
 }
 
 const StoreContext = createContext<StoreContextValue | null>(null);
@@ -22,6 +24,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
 
   const toggleSidebar = useCallback(() => setCollapsed((v) => !v), []);
+
+  const setStoreData = useCallback((nextStore: Store) => {
+    setStore(nextStore);
+    setParseError(null);
+  }, []);
+
+  const clearStore = useCallback(() => {
+    setStore(null);
+    setParseError(null);
+  }, []);
 
   const handleFile = useCallback((file: File) => {
     setLoading(true);
@@ -54,8 +66,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ store, loading, parseError, collapsed, toggleSidebar, handleFile }),
-    [store, loading, parseError, collapsed, toggleSidebar, handleFile]
+    () => ({ store, loading, parseError, collapsed, toggleSidebar, handleFile, setStoreData, clearStore }),
+    [store, loading, parseError, collapsed, toggleSidebar, handleFile, setStoreData, clearStore]
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

@@ -1,5 +1,6 @@
 export type RouteKey =
   | "overview"
+  | "dataentry"
   | "governance"
   | "setup"
   | "dcs"
@@ -24,6 +25,7 @@ export interface RouteDef {
 
 export const ROUTES: Record<RouteKey, RouteDef> = {
   overview: { key: "overview", href: "/overview", label: "Overview", icon: "home" },
+  dataentry: { key: "dataentry", href: "/dataentry", label: "Data Entry Studio", icon: "edit-3" },
   governance: { key: "governance", href: "/governance", label: "Governance & Control", icon: "shield" },
   setup: { key: "setup", href: "/setup", label: "Setup & Reporting Period", icon: "settings" },
   dcs: { key: "dcs", href: "/dcs", label: "DCS / ERP / Lab Boundary", icon: "network" },
@@ -41,7 +43,7 @@ export const ROUTES: Record<RouteKey, RouteDef> = {
 };
 
 export const NAV_SECTIONS: { label: string; keys: RouteKey[] }[] = [
-  { label: "Main", keys: ["overview"] },
+  { label: "Workspace", keys: ["overview", "dataentry"] },
   { label: "Governance", keys: ["governance", "setup"] },
   { label: "Data Inputs", keys: ["dcs", "production", "rawmaterial", "kilnfuel", "electricity"] },
   { label: "Factors", keys: ["constants"] },

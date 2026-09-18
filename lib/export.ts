@@ -412,3 +412,205 @@ export function downloadExcel(store: Store): void {
   const quarter = String(s.setup["Reporting quarter"] || "Q1");
   XLSX.writeFile(wb, `TRACE_FORCE_MRV_Cement_Export_${quarter.replace(/\s/g, "_")}.xlsx`);
 }
+
+export function downloadBlankTemplate(): void {
+  try {
+    const wb = XLSX.utils.book_new();
+
+    function addSheet(name: string, rows: (string | number | null | undefined)[][]) {
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, name);
+    }
+
+    // 00_README_Control
+    addSheet("00_README_Control", [
+      ["TRACE FORCE MRV — Cement QA/QC V28 Collection Workbook Template"],
+      ["Standard workbook schema for cement/clinker CBAM-GHG MRV."],
+      ["Control", "Value", "Governance note"],
+      ["Workbook Version", "v0.2", "Official TRACE FORCE MRV Schema"],
+      ["Status", "OFFICIAL TEMPLATE", "Ready for plant activity data collection"],
+      ["Sector", "Cement / Clinker", "Operational boundary"],
+      ["Calculation chain", "DCS Boundary → Inputs → Constants → Calculations → QA/QC → Report Outputs", "14-sheet automated accounting"],
+      ["Important control", "Missing values are not silently converted to zero", "QA/QC flags unpopulated mandatory cells"],
+    ]);
+
+    // 01_Setup
+    addSheet("01_Setup", [
+      ["Setup and Reporting Control"],
+      ["Facility parameters, accounting period and methodology selection."],
+      ["Parameter", "Value", "Unit", "Required?", "Notes", "Governance owner"],
+      ["Workbook mode", "Cement_QAQC_V28", null, "Yes", "MRV mode lock", "EgyTrace"],
+      ["Installation / site", "", null, "Yes", "Enter plant name", "Plant"],
+      ["Country", "Egypt", null, "Yes", "Jurisdiction for grid emission factors", "Plant"],
+      ["Reporting quarter", "Q1 2025", null, "Yes", "Reporting period", "Sustainability"],
+      ["Period start", "2025-01-01", "date", "Yes", "Inclusive start date", "Sustainability"],
+      ["Period end", "2025-03-31", "date", "Yes", "Inclusive end date", "Sustainability"],
+      ["Primary product", "CEM II/A-L 42.5N", null, "Yes", "Target product type", "Production"],
+      ["Boundary approach", "Operational control", null, "Yes", "Accounting boundary", "Sustainability"],
+      ["Selected calcination method", "Method B - clinker output", null, "Yes", "Method A or Method B", "Sustainability"],
+      ["Assurance status", "Prepared for internal review", null, "Yes", "Verification status", "Sustainability"],
+      ["Submission status", "Draft", null, "Yes", "Submission status", "Sustainability"],
+      ["CKD correction applied", "No", null, "Yes", "Cement kiln dust correction", "Sustainability"],
+    ]);
+
+    // 02_DCS_Boundary_Map
+    addSheet("02_DCS_Boundary_Map", [
+      ["DCS / ERP / Lab Boundary Map"],
+      ["Source systems mapping to MRV fields."],
+      ["Boundary Area","Source System","DCS/ERP/Lab Tag","MRV Field","Unit","Frequency","Evidence Required","Calculation Use","Mapped Status","Owner","QA/QC Rule"],
+      ["Production", "Kiln DCS", "KILN1_CLINKER_T_DAY", "Clinker Produced", "t/day", "Daily", "Weighbridge log", "Production_Input", "Mapped", "Production", "No negative"],
+      ["Production", "ERP / Dispatch", "CEM_MILL1_OUTPUT_T_DAY", "Cement Produced", "t/day", "Daily", "Dispatch report", "Production_Input", "Mapped", "Production", "Cement >= clinker used"],
+      ["Production", "ERP / Mill", "CLINKER_USED_CEM_T_DAY", "Clinker Used in Cement", "t/day", "Daily", "Mill balance", "Production_Input", "Mapped", "Production", "Clinker factor 0.25–1.00"],
+      ["Raw materials", "LIMS", "RAWMEAL_CACO3_PCT", "CaCO3 Content", "%", "Daily/Batch", "Lab certificate", "Raw_Material_Input", "Mapped", "Lab", "0–100%"],
+      ["Fuel", "Weigh feeder", "FUEL_FEED_T_DAY", "Kiln Fuel Feed", "t/day", "Daily", "Weigh feeder ticket", "Kiln_Fuel_Input", "Mapped", "Energy", "Qty >= 0"],
+      ["Electricity", "Utility meter", "GRID_MWH_MONTH", "Purchased Grid Electricity", "MWh", "Monthly", "Utility invoice", "Electricity_Input", "Mapped", "Utilities", "MWh >= 0"],
+    ]);
+
+    // 03_Production_Input
+    addSheet("03_Production_Input", [
+      ["Production Activity Data"],
+      ["Daily or monthly production and additive masses."],
+      ["Date","Quarter","Kiln Line","Cement Type","Clinker Produced t","Cement Produced t","Clinker Used t","Gypsum t","Limestone Additive t","Other Additives t","Clinker Factor","Evidence ID","QA Status","Notes"],
+      ["2025-01-31", "Q1 2025", "Kiln 1", "CEM II/A-L 42.5N", "", "", "", "", "", "", "", "EV-PROD-01", "", "Enter row data"],
+    ]);
+
+    // 04_Raw_Material_Input
+    addSheet("04_Raw_Material_Input", [
+      ["Raw Material Carbonate Data"],
+      ["Raw meal carbonate titration and calcination parameters for Method A."],
+      ["Date","Material","Quantity t","CaCO3 %","MgCO3 %","Moisture %","Calcination Conversion","CaCO3 CO2 t","MgCO3 CO2 t","Process CO2 Method A t","Evidence ID","QA Status"],
+      ["2025-01-31", "Raw Meal", "", "", "", "", 1.0, "", "", "", "EV-RAW-01", ""],
+    ]);
+
+    // 05_Kiln_Fuel_Input
+    addSheet("05_Kiln_Fuel_Input", [
+      ["Kiln Fuel Combustion Data"],
+      ["Fuel quantities, heating values, and emission factors."],
+      ["Date","Fuel Type","Quantity","Unit","NCV GJ/unit","EF tCO2/TJ","Oxidation Factor","Biomass Fraction","Fossil Fraction","Energy GJ","Energy TJ","Fossil CO2 t","Biogenic CO2 Memo t","Evidence ID","QA Status"],
+      ["2025-01-31", "Petcoke", "", "t", 32.5, 97.5, 0.99, 0.00, 1.00, "", "", "", "", "EV-FUEL-01", ""],
+      ["2025-01-31", "Coal",    "", "t", 25.8, 94.6, 0.99, 0.00, 1.00, "", "", "", "", "EV-FUEL-02", ""],
+      ["2025-01-31", "RDF",     "", "t", 17.0, 85.0, 0.98, 0.50, 0.50, "", "", "", "", "EV-FUEL-03", ""],
+    ]);
+
+    // 06_Electricity_Input
+    addSheet("06_Electricity_Input", [
+      ["Electricity Consumption Data"],
+      ["Grid purchases and on-site generation Scope 2 activity data."],
+      ["Date","Meter / Source","Grid MWh","Grid EF tCO2/MWh","Grid CO2 t","Self-generation MWh","Self-generation EF","Self-generation CO2 t","Renewable MWh","Evidence ID","QA Status"],
+      ["2025-01-31", "Main Substation", "", 0.4878, "", 0, 0, 0, 0, "EV-ELEC-01", ""],
+    ]);
+
+    // 07_Constants_EF_NCV
+    addSheet("07_Constants_EF_NCV", [
+      ["Factors and Constants Library"],
+      ["Official emission factors, heating values, and stoichiometric ratios."],
+      ["Constant / Factor","Value","Unit","Source / rationale","Used in","Change control","Status","Source URL"],
+      ["Selected clinker process EF", 0.5325, "tCO2/t clinker", "IPCC default for 65% CaO", "08_Calculations", "Controlled", "Active", ""],
+      ["CaCO3 molar mass ratio", 0.4397, "tCO2/t CaCO3", "Stoichiometric 44.01/100.09", "04_Raw_Material_Input", "Controlled", "Active", ""],
+      ["MgCO3 molar mass ratio", 0.5220, "tCO2/t MgCO3", "Stoichiometric 44.01/84.31", "04_Raw_Material_Input", "Controlled", "Active", ""],
+      ["Grid EF Egypt Q1 2025", 0.4878, "tCO2/MWh", "Published grid baseline", "06_Electricity_Input", "Controlled", "Active", ""],
+      [],
+      ["Fuel Type","Default NCV","NCV Unit","Default EF","EF Unit","Default Ox.","Default Biomass %","Notes"],
+      ["Petcoke", 32.5, "GJ/t", 97.5, "tCO2/TJ", 0.99, 0.00, "High-carbon kiln fuel"],
+      ["Coal", 25.8, "GJ/t", 94.6, "tCO2/TJ", 0.99, 0.00, "Fossil solid fuel"],
+      ["RDF", 17.0, "GJ/t", 85.0, "tCO2/TJ", 0.98, 0.50, "Refuse derived fuel"],
+      ["Tyre Chips", 31.4, "GJ/t", 85.0, "tCO2/TJ", 0.98, 0.27, "Rubber biomass"],
+      ["Natural Gas", 0.048, "GJ/Nm3", 56.1, "tCO2/TJ", 0.995, 0.00, "Gaseous fuel"],
+      ["Diesel", 43.0, "GJ/t", 74.1, "tCO2/TJ", 0.99, 0.00, "Startup backup fuel"],
+    ]);
+
+    // 08_Calculations
+    addSheet("08_Calculations", [
+      ["Emissions Calculations Chain"],
+      ["Summary of all mathematical derivations and intensity metrics."],
+      ["Metric","Formula / Link","Value","Unit","Governance note","QA Source"],
+      ["Clinker Produced", "=SUM('03_Production_Input'!E4:E10)", 0, "t", "Production total", "Production_Input"],
+      ["Cement Produced", "=SUM('03_Production_Input'!F4:F10)", 0, "t", "Cement output", "Production_Input"],
+      ["Clinker Used in Cement", "=SUM('03_Production_Input'!G4:G10)", 0, "t", "Clinker consumption", "Production_Input"],
+      ["Clinker Factor", "=C6/C5", 0, "ratio", "Clinker / Cement", "Production_Input"],
+      ["Process CO2 Method A", "=SUM('04_Raw_Material_Input'!J4:J10)", 0, "tCO2", "Method A total", "Raw_Material_Input"],
+      ["Process CO2 Method B", "=C4*0.5325", 0, "tCO2", "Method B clinker EF total", "Constants"],
+      ["Selected Process CO2", "=C9", 0, "tCO2", "Selected calcination pathway", "Setup"],
+      ["Fuel Combustion CO2", "=SUM('05_Kiln_Fuel_Input'!L4:L10)", 0, "tCO2", "Fossil fuel combustion", "Kiln_Fuel_Input"],
+      ["Biogenic CO2 Memo", "=SUM('05_Kiln_Fuel_Input'!M4:M10)", 0, "tCO2", "Biogenic memo", "Kiln_Fuel_Input"],
+      ["Direct Embedded CO2", "=C10+C11", 0, "tCO2", "Process + Fuel combustion", "Calculations"],
+      ["Grid Electricity MWh", "=SUM('06_Electricity_Input'!C4:C10)", 0, "MWh", "Scope 2 consumption", "Electricity_Input"],
+      ["Indirect Grid CO2", "=SUM('06_Electricity_Input'!E4:E10)", 0, "tCO2", "Scope 2 emissions", "Electricity_Input"],
+      ["Total Embedded CO2", "=C13+C15", 0, "tCO2", "Direct + Indirect emissions", "Calculations"],
+      ["SEE Clinker", "=C13/C4", 0, "tCO2/t clinker", "Clinker intensity", "Calculations"],
+      ["Specific Embedded Emissions Cement", "=C16/C5", 0, "tCO2/t cement", "Product intensity", "Calculations"],
+    ]);
+
+    // 09_QAQC_Checks
+    addSheet("09_QAQC_Checks", [
+      ["Automated QA/QC Check Register"],
+      ["18 automated quality rules for completeness, mass balances, and reasonableness."],
+      ["Check ID","Category","Check Name","Rule","Result","Status","Severity","Owner"],
+      ["MB-01", "Mass Balance", "Clinker factor range", "0.25 <= Clinker Factor <= 1.00", "", "PASS", "Warning", "Production"],
+      ["MB-02", "Mass Balance", "Cement production >= clinker used", "Cement Produced >= Clinker Used", "", "PASS", "Fail", "Production"],
+      ["MB-03", "Mass Balance", "Cement mass balance tolerance", "Clinker + additives ≈ cement ±2%", "", "PASS", "Warning", "Production"],
+      ["EI-01", "Emission Intensity", "SEE clinker expected range", "0.50 <= SEE Clinker <= 1.20", "", "PASS", "Warning", "Sustainability"],
+      ["EI-02", "Emission Intensity", "SEE cement not extreme", "0.20 <= SEE Cement <= 1.20", "", "PASS", "Warning", "Sustainability"],
+      ["FC-01", "Fuel", "All fuel NCV populated", "Minimum NCV > 0", "", "PASS", "Fail", "Energy"],
+      ["FC-02", "Fuel", "All fuel EF populated", "Minimum EF > 0", "", "PASS", "Fail", "Sustainability"],
+      ["FC-03", "Fuel", "Biomass fraction valid", "0 <= Biomass <= 1", "", "PASS", "Fail", "Energy"],
+      ["FC-04", "Fuel", "Oxidation factor reasonable", "0.95 <= OxFactor <= 1.00", "", "PASS", "Warning", "Sustainability"],
+      ["EL-01", "Electricity", "Grid EF populated", "Minimum grid EF > 0", "", "PASS", "Fail", "Utilities"],
+      ["EL-02", "Electricity", "Electricity present", "Grid MWh > 0", "", "PASS", "Warning", "Utilities"],
+      ["CP-01", "Completeness", "Process CO2 calculated", "Selected Process CO2 > 0", "", "PASS", "Fail", "Sustainability"],
+      ["EV-01", "Evidence", "Evidence register completeness", "No missing evidence status", "", "PASS", "Warning", "QA/QC"],
+      ["PR-01", "Period Lock", "Input period aligned", "Inputs are in selected quarter", "", "PASS", "Fail", "Sustainability"],
+      ["MB-04", "Mass Balance", "Clinker stockpile reconciliation", "Produced - Used = tracked delta", "", "PASS", "Warning", "Production"],
+      ["EI-03", "Emission Intensity", "SHC expected range", "2.8 <= SHC <= 4.5 GJ/t clinker", "", "PASS", "Warning", "Sustainability"],
+      ["FC-05", "Fuel", "TSR in expected range", "0% <= TSR <= 80%", "", "PASS", "Warning", "Energy"],
+      ["CP-02", "Completeness", "Method selection valid", "Method A or B explicitly selected in Setup", "", "PASS", "Fail", "Sustainability"],
+    ]);
+
+    // 10_Report_Outputs
+    addSheet("10_Report_Outputs", [
+      ["System-Facing Report Outputs"],
+      ["Consolidated outputs ready for regulatory submission."],
+      ["Output Field","Value","Unit","Source","Report Label","Governance Position","Mapped to Cement UI","Notes"],
+      ["Quarter", "Q1 2025", null, "Setup", "Reporting period", "Selected-period lock", "Overview / Report Cover", "Template"],
+      ["Product", "CEM II/A-L 42.5N", null, "Setup", "Product selected", "Product boundary", "Overview", "Template"],
+      ["Total Embedded CO2", 0, "tCO2", "Calculations", "Total embedded CO2", "Direct + indirect grid", "Overview / Report", "Template"],
+      ["Specific Embedded Emissions Cement", 0, "tCO2/t cement", "Calculations", "Specific embedded emissions", "Final cement product intensity", "Overview / Report", "Template"],
+    ]);
+
+    // 11_Evidence_Register
+    addSheet("11_Evidence_Register", [
+      ["Evidence Document Register"],
+      ["Document traceability linking activity records to calibration and lab evidence."],
+      ["Evidence ID","Evidence Type","Description","Source System","Mapped Sheet","Status","Owner","Reviewer","Frequency","Notes"],
+      ["EV-PROD-01", "Production log", "Weighbridge monthly production log", "Kiln DCS / ERP", "03_Production_Input", "Mapped", "Production", "MRV Team", "Monthly", "Template"],
+      ["EV-RAW-01",  "Lab certificate", "Raw meal carbonate titration analysis", "LIMS", "04_Raw_Material_Input", "Mapped", "Lab", "MRV Team", "Monthly", "Template"],
+      ["EV-FUEL-01", "Fuel record", "Fuel delivery weigh tickets and lab NCV certificates", "Fuel ERP", "05_Kiln_Fuel_Input", "Mapped", "Energy", "MRV Team", "Monthly", "Template"],
+      ["EV-ELEC-01", "Electricity bill", "Monthly fiscal electricity meter bill", "Utility meter", "06_Electricity_Input", "Mapped", "Utilities", "MRV Team", "Monthly", "Template"],
+    ]);
+
+    // 12_Regulatory_Refs
+    addSheet("12_Regulatory_Refs", [
+      ["Regulatory Reference Library"],
+      ["Official EU/CBAM and ISO 14064 reference mappings."],
+      ["Reference","Workbook application","Official source URL","Page / section pointer","Applied sheets","Notes","Status","Last checked"],
+      ["CBAM Regulation (EU) 2023/956", "Legal basis for CBAM embedded emissions reporting", "https://taxation-customs.ec.europa.eu/", "Regulation (EU) 2023/956", "All sheets", "Official", "Official", "2026-05-19"],
+      ["ISO 14064-1:2018", "GHG quantification boundaries", "https://www.iso.org/standard/66453.html", "Section 5", "00, 01, 08", "Standard", "Official", "2026-05-19"],
+    ]);
+
+    // 13_Dashboard
+    addSheet("13_Dashboard", [
+      ["Cement MRV Executive Summary"],
+      ["Pre-formatted executive dashboard summary."],
+      ["Metric", "Value", "Unit", "Governance position"],
+      ["Direct Embedded CO2", 0, "tCO2", "Process + fossil combustion"],
+      ["Total Embedded CO2", 0, "tCO2", "Direct + Indirect grid"],
+      ["SEE Cement", 0, "tCO2/t cement", "Final product intensity"],
+      ["QA/QC Status", "PASS", "status", "Internal readiness"],
+    ]);
+
+    XLSX.writeFile(wb, "TRACE_FORCE_MRV_Cement_QAQC_V28_Blank_Template.xlsx");
+  } catch (e: any) {
+    console.error("Blank template export error:", e);
+    alert("Failed to generate template: " + e.message);
+  }
+}
